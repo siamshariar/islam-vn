@@ -7,8 +7,9 @@ import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
 import { MainLayout } from "@/components/layout/main-layout"
 import { articles } from "../page"
 
-export default function ArticleDetailPage({ params }: { params: { id: string } }) {
-  const article = articles.find((a) => a.id === params.id)
+export default async function ArticleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const article = articles.find((a) => a.id === id)
 
   if (!article) {
     notFound()
@@ -83,15 +84,6 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="prose prose-lg prose-emerald max-w-none"
-            style={{
-              "--tw-prose-body": "var(--foreground)",
-              "--tw-prose-headings": "var(--emerald)",
-              "--tw-prose-links": "var(--emerald)",
-              "--tw-prose-bold": "var(--foreground)",
-              "--tw-prose-quotes": "var(--muted-foreground)",
-              "--tw-prose-quote-borders": "var(--emerald)",
-              "--tw-prose-bullets": "var(--emerald)",
-            }}
           >
             {article.content.split("\n\n").map((paragraph, index) => {
               // Check if it's a heading

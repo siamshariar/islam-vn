@@ -8,8 +8,9 @@ import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { books } from "../page"
 
-export default function BookDetailPage({ params }: { params: { id: string } }) {
-  const book = books.find((b) => b.id === params.id)
+export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const book = books.find((b) => b.id === id)
 
   if (!book) {
     notFound()
