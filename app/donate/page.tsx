@@ -1,7 +1,6 @@
 "use client"
 
 import { Heart, CreditCard, Building, Smartphone, CheckCircle } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -23,8 +22,7 @@ const impactItems = [
 
 export default function DonatePage() {
   return (
-    <MainLayout>
-      <div className="px-4 lg:px-8 py-8">
+    <div className="px-4 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Hero */}
           <motion.div
@@ -112,6 +110,6 @@ export default function DonatePage() {
           </div>
         </div>
       </div>
-    </MainLayout>
-  )
+    )
 }
+

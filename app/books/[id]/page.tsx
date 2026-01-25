@@ -1,29 +1,22 @@
 "use client"
 
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { BookOpen, Download, ChevronLeft, User, Languages, Tag } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
-import { books } from "../page"
+import { books } from "@/lib/books"
 
-export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default function BookDetailPage() {
+  const params = useParams()
+  const id = params.id as string
   const book = books.find((b) => b.id === id)
-
-  if (!book) {
-    notFound()
-  }
+  if (!book) return <div>Book not found</div>
 
   return (
-    <MainLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="px-4 lg:px-8 py-8"
-      >
+    <div
+      className="px-4 lg:px-8 py-8"
+    >
         {/* Back button */}
         <Link
           href="/books"
@@ -34,7 +27,6 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         </Link>
 
         <div className="grid lg:grid-cols-[350px_1fr] gap-8 lg:gap-12">
-          {/* Left Column: Book Visual */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -71,10 +63,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
           </motion.div>
 
           {/* Right Column: Metadata and Content */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+          <div
             className="space-y-8"
           >
             {/* Title */}
@@ -141,9 +130,8 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
                 <p className="text-foreground leading-relaxed text-base">{book.description}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
-    </MainLayout>
-  )
+      </div>
+    )
 }

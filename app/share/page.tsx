@@ -1,7 +1,6 @@
 "use client"
 
 import { Share2, Facebook, Twitter, Link2, Copy, CheckCircle } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,8 +18,7 @@ export default function SharePage() {
   }
 
   return (
-    <MainLayout>
-      <div className="px-4 lg:px-8 py-8">
+    <div className="px-4 lg:px-8 py-8">
         <div className="max-w-2xl mx-auto">
           <motion.div
             className="text-center mb-12"
@@ -70,6 +68,6 @@ export default function SharePage() {
           </CardWrapper>
         </div>
       </div>
-    </MainLayout>
-  )
+    )
 }
+

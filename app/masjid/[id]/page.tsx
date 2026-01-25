@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, MapPin, Phone, Mail, Clock, Globe, Navigation } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
 
@@ -39,8 +38,7 @@ export default function MasjidDetailPage() {
   const masjid = masjidData[id] || masjidData["1"]
 
   return (
-    <MainLayout>
-      <div className="px-4 lg:px-8 py-8">
+    <div className="px-4 lg:px-8 py-8">
         <Link href="/masjid" className="inline-flex items-center gap-2 text-emerald hover:underline mb-6">
           <ArrowLeft className="w-4 h-4" />
           Back to Directory
@@ -124,6 +122,5 @@ export default function MasjidDetailPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
-  )
+    )
 }

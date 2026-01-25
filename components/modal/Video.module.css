@@ -1,0 +1,139 @@
+.modalWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.overlay {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  position: relative;
+  overflow: hidden;
+  max-width: 1200px; 
+  width: 80%;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.closeButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1001;
+  opacity: 0.8;
+}
+
+.closeButton:hover {
+  opacity: 1;
+}
+
+
+
+.iframeContainer {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+
+.iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.details {
+  padding: 15px;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.share {
+  margin-top: 2px;
+  justify-content: end;
+  margin-left: 10px;
+}
+
+@media (min-width: 1440px) {
+  .content {
+    width: 100%; 
+    max-width: 1000px; 
+  }
+}
+
+@media (min-width: 1240px) {
+  .content {
+    width: 100%; 
+    max-width: 1000px; 
+  }
+}
+
+
+/* For mobile screens */
+@media (max-width: 768px) {
+  .modalWrapper {
+    padding: 0;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 1000;
+    margin: 0;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .closeButton {
+    font-size: 2.5rem;
+    top: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .content {
+    width: 84%;
+    max-width: 1000px;
+    margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .content {
+    width: 100%;
+  }
+
+
+}

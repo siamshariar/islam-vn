@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Play, FileText, HelpCircle, Lightbulb, ChevronRight } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { MediaModal } from "@/components/ui/media-modal"
 import { motion } from "framer-motion"
@@ -45,7 +44,7 @@ export default function NonMuslimPage() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
 
   return (
-    <MainLayout>
+    <>
       <div className="px-4 lg:px-8 py-8">
         {/* Welcome Section */}
         <motion.div
@@ -141,6 +140,6 @@ export default function NonMuslimPage() {
         videoId={selectedVideo || undefined}
         title="Video"
       />
-    </MainLayout>
+    </>
   )
 }

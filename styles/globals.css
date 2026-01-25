@@ -123,3 +123,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide scrollbar but keep scrolling functionality */
+.scrollbar-hide {
+  /* IE and Edge */
+  -ms-overflow-style: none !important;
+  /* Firefox: use transparent scrollbar colors to visually hide */
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--color-sidebar) var(--color-sidebar) !important;
+  /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* WebKit browsers: make track and thumb same as sidebar color */
+.scrollbar-hide::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-hide::-webkit-scrollbar-track {
+  background: var(--color-sidebar) !important;
+}
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  background: var(--color-sidebar) !important;
+  border-radius: 9999px;
+  border: 0 none;
+}
+
+/* Fallback: if any visible edge remains, make it transparent */
+.scrollbar-hide::-webkit-scrollbar-corner {
+  background: var(--color-sidebar) !important;
+}

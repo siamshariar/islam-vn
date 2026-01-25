@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Search, HelpCircle, ChevronDown, ChevronUp } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion"
@@ -67,8 +66,7 @@ export default function QAPage() {
   )
 
   return (
-    <MainLayout>
-      <div className="px-4 lg:px-8 py-8">
+    <div className="px-4 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-emerald mb-2">Questions & Answers</h1>
@@ -145,6 +143,6 @@ export default function QAPage() {
           ))}
         </div>
       </div>
-    </MainLayout>
-  )
+    )
 }
+

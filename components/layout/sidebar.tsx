@@ -60,7 +60,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Image src="/images/islam.png" alt="Islam VN" width={140} height={50} className="h-10 w-auto" />
           </Link>
         </div>
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -128,7 +128,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <nav className="overflow-y-auto py-4 px-3 h-[calc(100%-80px)]">
+        <nav className="overflow-y-auto py-4 px-3 h-[calc(100%-80px)] scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href

@@ -1,28 +1,21 @@
 "use client"
 
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
-import { articles } from "../page"
+import { articles } from "@/lib/articles"
 
-export default async function ArticleDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default function ArticleDetailPage() {
+  const params = useParams()
+  const id = params.id as string
   const article = articles.find((a) => a.id === id)
-
-  if (!article) {
-    notFound()
-  }
+  if (!article) return <div>Article not found</div>
 
   return (
-    <MainLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="px-4 lg:px-8 py-8"
-      >
+    <div
+      className="px-4 lg:px-8 py-8"
+    >
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
           <Link
@@ -34,10 +27,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
           </Link>
 
           {/* Article Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          <div
             className="mb-8"
           >
             <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -60,7 +50,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
             </h1>
 
             <p className="text-xl text-muted-foreground leading-relaxed">{article.excerpt}</p>
-          </motion.div>
+          </div>
 
           {/* Feature Image */}
           {article.featureImage && (
@@ -124,10 +114,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
           </motion.article>
 
           {/* Related Articles Section (Optional) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+          <div
             className="mt-16 pt-8 border-t border-border"
           >
             <Link
@@ -137,9 +124,8 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
               <ChevronLeft className="w-4 h-4" />
               View all articles
             </Link>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
-    </MainLayout>
-  )
+      </div>
+    )
 }

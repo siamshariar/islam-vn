@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Search, MapPin, Phone, Clock, ChevronRight } from "lucide-react"
-import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 
@@ -68,8 +67,7 @@ export default function MasjidPage() {
   )
 
   return (
-    <MainLayout>
-      <div className="px-4 lg:px-8 py-8">
+    <div className="px-4 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-emerald mb-2">Masjid Directory</h1>
@@ -124,6 +122,5 @@ export default function MasjidPage() {
           ))}
         </div>
       </div>
-    </MainLayout>
-  )
+    )
 }
