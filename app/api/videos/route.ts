@@ -95,16 +95,26 @@ export async function GET(request: NextRequest) {
         console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
         return NextResponse.json({
           videos: getFallbackVideos().slice(0, maxResults),
-          note: "Using fallback data due to API issues"
+          note: "Using fallback data due to API issues or quota exceeded"
         });
       }
 
       return NextResponse.json({ videos });
-    } catch (apiError) {
+    } catch (apiError: any) {
       clearTimeout(timeoutId);
-      console.error('YouTube API error:', apiError);
+      console.error('YouTube API error:', apiError?.message || apiError);
       console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
       console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
+
+      // Check if it's a quota exceeded error
+      if (apiError?.message?.includes('quota') || apiError?.code === 403) {
+        console.log('YouTube API quota exceeded, using fallback data');
+        return NextResponse.json({
+          videos: getFallbackVideos().slice(0, maxResults),
+          note: "YouTube API quota exceeded, using fallback data"
+        });
+      }
+
       return NextResponse.json({
         videos: getFallbackVideos().slice(0, maxResults),
         note: "Using fallback data due to API error"
