@@ -109,20 +109,26 @@ export default function VideosPage() {
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null)
   const [search, setSearch] = useState("")
   const [initialVideos, setInitialVideos] = useState<YouTubeVideo[]>([])
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
 
   // Load initial videos from home page cache
   useEffect(() => {
-    const cachedVideos = localStorage.getItem('islam-vn-home-videos')
-    if (cachedVideos) {
-      try {
-        const parsedVideos = JSON.parse(cachedVideos)
-        if (parsedVideos && parsedVideos.length > 0) {
-          setInitialVideos(parsedVideos)
+    const timer = setTimeout(() => {
+      const cachedVideos = localStorage.getItem('islam-vn-home-videos')
+      if (cachedVideos) {
+        try {
+          const parsedVideos = JSON.parse(cachedVideos)
+          if (parsedVideos && parsedVideos.length > 0) {
+            setInitialVideos(parsedVideos)
+          }
+        } catch (err) {
+          console.error('Error parsing cached home videos:', err)
         }
-      } catch (err) {
-        console.error('Error parsing cached home videos:', err)
       }
-    }
+      setIsInitialLoading(false)
+    }, 800) // Show loading for at least 800ms for better UX
+
+    return () => clearTimeout(timer)
   }, [])
 
   // Use SWR Infinite for videos - fetch from YouTube API immediately
@@ -139,20 +145,18 @@ export default function VideosPage() {
 
   // Flatten the data from all pages
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
-  // Combine initial videos with API videos, removing duplicates
-  const allVideos = [...initialVideos, ...apiVideos]
-  const videos = allVideos.filter((video, index, self) =>
-    index === self.findIndex(v => v.id === video.id)
-  )
+
+  // Use API videos if available, otherwise use initial videos (from cache)
+  const videos = apiVideos.length > 0 ? apiVideos : initialVideos
 
   const isLoadingInitialData = !data && !error
   const isLoadingMore = isValidating && data && size > 1
   const isRefreshing = isValidating && size === 1 // Loading first page
   const isEmpty = data?.[0]?.videos?.length === 0
-  const isReachingEnd = isEmpty || (data && !data[data.length - 1]?.hasMore)
+  const isReachingEnd = isEmpty || (data && data.length > 0 && !data[data.length - 1]?.hasMore)
 
   // Show loading for initial load or when refreshing
-  const showLoading = isLoadingInitialData || (isRefreshing && videos.length === 0)
+  const showLoading = isInitialLoading || (isLoadingInitialData && initialVideos.length === 0)
 
   // Handle URL params for modal
   useEffect(() => {
@@ -281,11 +285,12 @@ export default function VideosPage() {
           </div>
         )}
 
-        {!isReachingEnd && !isLoadingMore && (
+        {!isReachingEnd && videos.length > 0 && (
           <div className="flex justify-center mt-8">
             <button
               onClick={loadMore}
-              className="px-6 py-3 bg-emerald text-white rounded-lg hover:bg-emerald/90 transition-colors"
+              disabled={isLoadingMore}
+              className="px-6 py-3 bg-emerald text-white rounded-lg hover:bg-emerald/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Load More Videos
             </button>
