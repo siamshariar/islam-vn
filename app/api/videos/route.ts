@@ -91,6 +91,8 @@ export async function GET(request: NextRequest) {
 
       if (!videos || videos.length === 0) {
         console.log('No videos fetched from YouTube API, using fallback data');
+        console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
+        console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
         return NextResponse.json({
           videos: getFallbackVideos().slice(0, maxResults),
           note: "Using fallback data due to API issues"
@@ -101,6 +103,8 @@ export async function GET(request: NextRequest) {
     } catch (apiError) {
       clearTimeout(timeoutId);
       console.error('YouTube API error:', apiError);
+      console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
+      console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
       return NextResponse.json({
         videos: getFallbackVideos().slice(0, maxResults),
         note: "Using fallback data due to API error"

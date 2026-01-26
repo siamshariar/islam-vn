@@ -244,15 +244,11 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   }
 
   console.log('Fetching videos from YouTube channels and playlists...');
+  console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
+  console.log('YouTube API Key starts with:', process.env.YOUTUBE_API_KEY?.substring(0, 10) + '...');
 
   const sources = [
-    'https://www.youtube.com/@jaddukaji-abuzizou',
-    'https://www.youtube.com/@abdullatif-mk8tp',
-    'http://www.youtube.com/@SultanL.K',
-    'http://www.youtube.com/@abufawzaan4440',
-    'https://www.youtube.com/@islamlavn',
-    'https://www.youtube.com/@saleemhammad17',
-    'https://www.youtube.com/watch?v=KoZ83cnoZyU&list=PLnfYS3rBXoKSDiGuqF_DUgsfUIDfItqyw&index=12',
+    'https://www.youtube.com/@islamlavn', // Test with just one channel first
   ];
 
   const allVideos: YouTubeVideo[] = [];
