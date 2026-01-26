@@ -108,6 +108,22 @@ export default function VideosPage() {
   const searchParams = useSearchParams()
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null)
   const [search, setSearch] = useState("")
+  const [initialVideos, setInitialVideos] = useState<YouTubeVideo[]>([])
+
+  // Load initial videos from home page cache
+  useEffect(() => {
+    const cachedVideos = localStorage.getItem('islam-vn-home-videos')
+    if (cachedVideos) {
+      try {
+        const parsedVideos = JSON.parse(cachedVideos)
+        if (parsedVideos && parsedVideos.length > 0) {
+          setInitialVideos(parsedVideos)
+        }
+      } catch (err) {
+        console.error('Error parsing cached home videos:', err)
+      }
+    }
+  }, [])
 
   // Use SWR Infinite for videos - fetch from YouTube API immediately
   const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(
@@ -122,7 +138,13 @@ export default function VideosPage() {
   )
 
   // Flatten the data from all pages
-  const videos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
+  const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
+  // Combine initial videos with API videos, removing duplicates
+  const allVideos = [...initialVideos, ...apiVideos]
+  const videos = allVideos.filter((video, index, self) =>
+    index === self.findIndex(v => v.id === video.id)
+  )
+
   const isLoadingInitialData = !data && !error
   const isLoadingMore = isValidating && data && size > 1
   const isRefreshing = isValidating && size === 1 // Loading first page

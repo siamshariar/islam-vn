@@ -5,12 +5,74 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
 import { articles } from "@/lib/articles"
+import { useState, useEffect } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ArticleDetailPage() {
   const params = useParams()
   const id = params.id as string
-  const article = articles.find((a) => a.id === id)
-  if (!article) return <div>Article not found</div>
+  const [article, setArticle] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate loading delay for consistent UX
+    const timer = setTimeout(() => {
+      const foundArticle = articles.find((a) => a.id === id)
+      setArticle(foundArticle)
+      setLoading(false)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="px-4 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Back button skeleton */}
+          <Skeleton className="h-6 w-32 mb-8" />
+
+          {/* Article header skeleton */}
+          <div className="mb-8">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <Skeleton className="h-12 w-full mb-4" />
+            <Skeleton className="h-6 w-3/4" />
+          </div>
+
+          {/* Article content skeleton */}
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!article) {
+    return (
+      <div className="px-4 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-muted-foreground mb-4">Article Not Found</h1>
+          <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
+          <Link
+            href="/articles"
+            className="inline-flex items-center gap-2 text-emerald hover:text-emerald/80 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to Articles
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
