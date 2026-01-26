@@ -98,7 +98,8 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 // Get key function for infinite loading
 const getKey = (pageIndex: number, previousPageData: any, initPlaylistId?: string) => {
-  if (previousPageData && !previousPageData.videos?.length) return null // reached the end
+  // reached the end
+  if (previousPageData && !previousPageData.hasMore) return null
   return `/api/videos?maxResults=20&page=${pageIndex + 1}${initPlaylistId ? `&playlistId=${initPlaylistId}` : ''}`
 }
 
@@ -126,7 +127,7 @@ export default function VideosPage() {
   const isLoadingMore = isValidating && data && size > 1
   const isRefreshing = isValidating && size === 1 // Loading first page
   const isEmpty = data?.[0]?.videos?.length === 0
-  const isReachingEnd = isEmpty || (data && data[data.length - 1]?.videos?.length < 20)
+  const isReachingEnd = isEmpty || (data && !data[data.length - 1]?.hasMore)
 
   // Show loading for initial load or when refreshing
   const showLoading = isLoadingInitialData || (isRefreshing && videos.length === 0)

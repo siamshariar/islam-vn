@@ -71,13 +71,20 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const maxResults = parseInt(searchParams.get('maxResults') || '5');
+    const page = parseInt(searchParams.get('page') || '1');
 
     // During build time, immediately return fallback data to avoid timeouts
     if (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_BUILD === '1') {
       console.log('Build time detected, using fallback data');
+      const fallbackVideos = getFallbackVideos();
+      const startIndex = (page - 1) * maxResults;
+      const endIndex = startIndex + maxResults;
+      const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
       return NextResponse.json({
-        videos: getFallbackVideos().slice(0, maxResults),
-        note: "Using fallback data during build"
+        videos: paginatedVideos,
+        note: "Using fallback data during build",
+        hasMore: endIndex < fallbackVideos.length
       });
     }
 
@@ -86,20 +93,35 @@ export async function GET(request: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
     try {
-      const videos = await fetchAllVideos(maxResults);
+      const allVideos = await fetchAllVideos(100); // Fetch more videos for pagination
       clearTimeout(timeoutId);
 
-      if (!videos || videos.length === 0) {
+      if (!allVideos || allVideos.length === 0) {
         console.log('No videos fetched from YouTube API, using fallback data');
         console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
         console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
+
+        const fallbackVideos = getFallbackVideos();
+        const startIndex = (page - 1) * maxResults;
+        const endIndex = startIndex + maxResults;
+        const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
         return NextResponse.json({
-          videos: getFallbackVideos().slice(0, maxResults),
-          note: "Using fallback data due to API issues or quota exceeded"
+          videos: paginatedVideos,
+          note: "Using fallback data due to API issues or quota exceeded",
+          hasMore: endIndex < fallbackVideos.length
         });
       }
 
-      return NextResponse.json({ videos });
+      // Implement pagination on the fetched videos
+      const startIndex = (page - 1) * maxResults;
+      const endIndex = startIndex + maxResults;
+      const paginatedVideos = allVideos.slice(startIndex, endIndex);
+
+      return NextResponse.json({
+        videos: paginatedVideos,
+        hasMore: endIndex < allVideos.length
+      });
     } catch (apiError: any) {
       clearTimeout(timeoutId);
       console.error('YouTube API error:', apiError?.message || apiError);
@@ -109,23 +131,41 @@ export async function GET(request: NextRequest) {
       // Check if it's a quota exceeded error
       if (apiError?.message?.includes('quota') || apiError?.code === 403) {
         console.log('YouTube API quota exceeded, using fallback data');
+        const fallbackVideos = getFallbackVideos();
+        const startIndex = (page - 1) * maxResults;
+        const endIndex = startIndex + maxResults;
+        const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
         return NextResponse.json({
-          videos: getFallbackVideos().slice(0, maxResults),
-          note: "YouTube API quota exceeded, using fallback data"
+          videos: paginatedVideos,
+          note: "YouTube API quota exceeded, using fallback data",
+          hasMore: endIndex < fallbackVideos.length
         });
       }
 
+      const fallbackVideos = getFallbackVideos();
+      const startIndex = (page - 1) * maxResults;
+      const endIndex = startIndex + maxResults;
+      const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
       return NextResponse.json({
-        videos: getFallbackVideos().slice(0, maxResults),
-        note: "Using fallback data due to API error"
+        videos: paginatedVideos,
+        note: "Using fallback data due to API error",
+        hasMore: endIndex < fallbackVideos.length
       });
     }
   } catch (error) {
     console.error('Route error:', error);
+    const fallbackVideos = getFallbackVideos();
+    const startIndex = 0;
+    const endIndex = 5;
+    const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
     return NextResponse.json(
       {
-        videos: getFallbackVideos().slice(0, 5),
-        note: "Using fallback data due to route error"
+        videos: paginatedVideos,
+        note: "Using fallback data due to route error",
+        hasMore: endIndex < fallbackVideos.length
       },
       { status: 500 }
     );
