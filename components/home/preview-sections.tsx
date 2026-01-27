@@ -1,36 +1,35 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Play, BookOpen, FileText, ChevronRight, Loader2 } from "lucide-react"
 import { SectionHeader } from "@/components/ui/section-header"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import VideoModalHome from "@/components/modal/VideoModalHome"
+import { books } from "@/lib/books"
+import { articles } from "@/lib/articles"
+import { YouTubeVideo } from "@/lib/youtube-api"
 
-interface YouTubeVideo {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  duration: string;
-  viewCount: string;
-  publishedAt: string;
-  channelTitle: string;
+function BookCover({ title, author, color }: { title: string; author: string; color: string }) {
+  return (
+    <div
+      className={`aspect-[3/4] bg-gradient-to-br ${color} p-5 flex flex-col justify-between rounded-t-2xl relative overflow-hidden`}
+    >
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
+      <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+
+      <div className="relative z-10">
+        <div className="w-10 h-1.5 bg-white/40 rounded-full mb-4" />
+        <BookOpen className="w-8 h-8 text-white/60 mb-3" />
+      </div>
+      <div className="relative z-10">
+        <h3 className="text-white font-bold text-base leading-tight mb-2 line-clamp-3">{title}</h3>
+        <p className="text-white/80 text-sm line-clamp-1">{author}</p>
+      </div>
+    </div>
+  )
 }
-
-// Sample data for books and articles (keeping these as they are)
-const books = [
-  { id: "1", title: "The Sealed Nectar", author: "Safiur Rahman", color: "from-emerald to-emerald-light" },
-  { id: "2", title: "Fortress of the Muslim", author: "Sa'id Al-Qahtani", color: "from-gold to-orange" },
-  { id: "3", title: "Riyad us-Saliheen", author: "Imam An-Nawawi", color: "from-emerald-light to-emerald" },
-  { id: "4", title: "The Book of Tawheed", author: "Muhammad ibn Abdul Wahhab", color: "from-orange to-gold" },
-]
-
-const articles = [
-  { id: "1", title: "The Five Pillars of Islam Explained", category: "Basics", readTime: "5 min" },
-  { id: "2", title: "Understanding Islamic Ethics in Daily Life", category: "Lifestyle", readTime: "8 min" },
-  { id: "3", title: "The Importance of Seeking Knowledge", category: "Education", readTime: "6 min" },
-  { id: "4", title: "Building a Strong Muslim Community", category: "Community", readTime: "7 min" },
-]
 
 export function PreviewSections() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([])
@@ -177,18 +176,11 @@ export function PreviewSections() {
       <section>
         <SectionHeader title="Books" href="/books" viewAllText="View All" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {books.map((book, index) => (
-            <CardWrapper key={book.id} delay={index * 0.1} className="group">
-              <div className={`aspect-[3/4] bg-gradient-to-br ${book.color} p-4 flex flex-col justify-between`}>
-                <div>
-                  <div className="w-8 h-1 bg-white/30 rounded-full mb-4" />
-                  <BookOpen className="w-6 h-6 text-white/50 mb-2" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-sm leading-tight mb-1">{book.title}</h3>
-                  <p className="text-white/70 text-xs">{book.author}</p>
-                </div>
-              </div>
+          {books.slice(0, 4).map((book, index) => (
+            <CardWrapper key={book.id} delay={index * 0.1}>
+              <Link href={`/books/${book.id}`}>
+                <BookCover title={book.title} author={book.author} color={book.color} />
+              </Link>
             </CardWrapper>
           ))}
         </div>
@@ -200,20 +192,22 @@ export function PreviewSections() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {articles.map((article, index) => (
             <CardWrapper key={article.id} delay={index * 0.1}>
-              <div className="p-5 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald/10 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-6 h-6 text-emerald" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold mb-1 line-clamp-2">{article.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="px-2 py-0.5 bg-muted rounded-full text-xs">{article.category}</span>
-                    <span>•</span>
-                    <span>{article.readTime} read</span>
+              <Link href={`/articles/${article.id}`} className="block">
+                <div className="p-5 flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald/10 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-6 h-6 text-emerald" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold mb-1 line-clamp-2">{article.title}</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="px-2 py-0.5 bg-muted rounded-full text-xs">{article.category}</span>
+                      <span>•</span>
+                      <span>{article.readTime} read</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
+              </Link>
             </CardWrapper>
           ))}
         </div>

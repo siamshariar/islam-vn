@@ -70,7 +70,7 @@ function getFallbackVideos() {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const maxResults = parseInt(searchParams.get('maxResults') || '5');
+    const maxResults = parseInt(searchParams.get('maxResults') || '20');
     const page = parseInt(searchParams.get('page') || '1');
 
     // During build time, immediately return fallback data to avoid timeouts

@@ -128,9 +128,9 @@
 .scrollbar-hide {
   /* IE and Edge */
   -ms-overflow-style: none !important;
-  /* Firefox: use transparent scrollbar colors to visually hide */
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--color-sidebar) var(--color-sidebar) !important;
+  /* Firefox: hide scrollbar */
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
   /* Smooth scrolling on iOS */
   -webkit-overflow-scrolling: touch !important;
   -webkit-touch-callout: none !important;
@@ -138,19 +138,42 @@
 
 /* WebKit browsers: make track and thumb same as sidebar color */
 .scrollbar-hide::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.scrollbar-hide::-webkit-scrollbar-track {
-  background: var(--color-sidebar) !important;
-}
-.scrollbar-hide::-webkit-scrollbar-thumb {
-  background: var(--color-sidebar) !important;
-  border-radius: 9999px;
-  border: 0 none;
+  -webkit-appearance: none;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-/* Fallback: if any visible edge remains, make it transparent */
+/* Ensure corners are transparent if any remain */
 .scrollbar-hide::-webkit-scrollbar-corner {
-  background: var(--color-sidebar) !important;
+  background: transparent !important;
+}
+
+/* Force-hide sidebar scrollbars with higher specificity */
+aside .scrollbar-hide::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+aside .scrollbar-hide::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+aside .scrollbar-hide::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border: 0 none !important;
+}
+/* Reinforce Firefox/IE rules for aside elements */
+aside .scrollbar-hide {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Additional fallback: make thumb transparent if any width remains */
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border: 0 none !important;
+}
+
+/* Ensure Firefox hides scrollbar and still allows scrolling */
+.scrollbar-hide {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
