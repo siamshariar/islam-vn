@@ -21,12 +21,14 @@ import {
   Book,
   Library,
   ExternalLink,
+  Newspaper,
 } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/videos", label: "Videos", icon: Video },
   { href: "/books", label: "Books", icon: BookOpen },
+  { href: "/blogs", label: "Blogs", icon: Newspaper },
   { href: "/articles", label: "Articles", icon: FileText },
   { href: "/qa", label: "Q&A", icon: HelpCircle },
   { href: "/new-muslim", label: "New Muslim", icon: UserPlus },

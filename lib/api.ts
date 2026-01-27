@@ -27,7 +27,7 @@ export async function getBlogList(): Promise<BlogPost[]> {
 // SIMULATE: Fetching a single blog by ID (The "Millions" part)
 export async function getBlogDetail(id: string): Promise<BlogPost> {
   console.log(`⚡ FETCHING DATA FROM DB FOR ID: ${id}`); // Log to show when cache is missed
-  
+
   // Simulate network delay (DB query)
   await new Promise((resolve) => setTimeout(resolve, 500));
 

@@ -39,11 +39,11 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       revalidateOnMount: false, // Don't fetch on mount since we have initial data
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 300000, // 5 minutes deduping
-      focusThrottleInterval: 300000,
-      errorRetryInterval: 60000,
+      dedupingInterval: 1800000, // 30 minutes deduping (increased from 5 minutes)
+      focusThrottleInterval: 1800000,
+      errorRetryInterval: 300000, // 5 minutes retry interval (increased from 1 minute)
       shouldRetryOnError: false,
-      refreshInterval: 600000, // Refresh every 10 minutes
+      refreshInterval: 14400000, // Refresh every 4 hours (reduced from 10 minutes)
     }
   )
 
@@ -57,6 +57,20 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   )
 
   const isLoadingInitialData = !data && !error
+
+  // Cache videos data for home page to use
+  useEffect(() => {
+    if (videos.length > 0 && !isLoadingInitialData) {
+      try {
+        localStorage.setItem('islam-vn-videos-cache', JSON.stringify(videos))
+        localStorage.setItem('islam-vn-videos-cache-timestamp', Date.now().toString())
+        console.log('Cached videos data for home page use')
+      } catch (err) {
+        console.warn('Failed to cache videos data')
+      }
+    }
+  }, [videos, isLoadingInitialData])
+
   const isLoadingMoreFromApi = isValidating && data && size > 0
   const isRefreshing = isValidating && size === 0
   const isEmpty = data?.[0]?.videos?.length === 0
@@ -180,7 +194,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
               )
               .map((video, index) => (
                 <CardWrapper key={video.id} delay={index * 0.05}>
-                  <button onClick={() => handleVideoClick(video)} className="w-full text-left">
+                  <button onClick={() => handleVideoClick(video)} className="w-full text-left cursor-pointer">
                     <div className="relative aspect-video">
                       <img
                         src={video.thumbnail || "/placeholder.svg"}

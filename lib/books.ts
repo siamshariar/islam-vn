@@ -1,46 +1,24 @@
-export const books = [
-  {
-    id: "1",
-    title: "The Sealed Nectar",
-    author: "Safiur Rahman Mubarakpuri",
-    translator: "Translated by Issam Diab",
-    category: "Biography",
-    pages: 600,
-    color: "from-emerald to-emerald-light",
-    thumbnail: null,
-    description: "The Sealed Nectar is an award-winning biography of Prophet Muhammad (peace be upon him).",
-  },
-  {
-    id: "2",
-    title: "Fortress of the Muslim",
-    author: "Sa'id Al-Qahtani",
-    translator: "Translated by Abdul Karim",
-    category: "Supplications",
-    pages: 200,
-    color: "from-gold to-orange",
-    thumbnail: null,
-    description: "A comprehensive collection of authentic supplications and remembrances.",
-  },
-  {
-    id: "3",
-    title: "Riyad us-Saliheen",
-    author: "Imam An-Nawawi",
-    translator: "Translated by Muhammad Amin",
-    category: "Hadith Collection",
-    pages: 1500,
-    color: "from-emerald-light to-emerald",
-    thumbnail: null,
-    description: "Gardens of the Righteous is one of the most celebrated collections of hadith.",
-  },
-  {
-    id: "4",
-    title: "The Book of Tawheed",
-    author: "Muhammad ibn Abdul Wahhab",
-    translator: "Translated by Sameh Strauch",
-    category: "Theology",
-    pages: 300,
-    color: "from-orange to-gold",
-    thumbnail: null,
-    description: "This fundamental text explores the Islamic concept of monotheism (Tawheed).",
-  },
-]
+import booksData from './books-data.json';
+
+export const books = booksData
+  .map((book: any, index: number) => ({
+    id: book.id,
+    title: book.Title,
+    author: book.Author || 'Unknown Author',
+    translator: book.Translator || '',
+    category: book.category,
+    pages: book.pages,
+    color: book.color,
+    thumbnail: book.thumb_img_url || null,
+    description: book.Description,
+    url: book.Url,
+    pdfUrl: book.Pdf_url,
+  }))
+  .sort((a, b) => {
+    // Books with thumbnails come first
+    if (a.thumbnail && !b.thumbnail) return -1;
+    if (!a.thumbnail && b.thumbnail) return 1;
+    return 0;
+  });
+
+

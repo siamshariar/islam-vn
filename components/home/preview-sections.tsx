@@ -10,22 +10,38 @@ import { books } from "@/lib/books"
 import { articles } from "@/lib/articles"
 import { YouTubeVideo } from "@/lib/youtube-api"
 
-function BookCover({ title, author, color }: { title: string; author: string; color: string }) {
+function BookCover({ title, author, color, thumbnail }: { title: string; author: string; color: string; thumbnail?: string | null }) {
   return (
     <div
       className={`aspect-[3/4] bg-gradient-to-br ${color} p-5 flex flex-col justify-between rounded-t-2xl relative overflow-hidden`}
     >
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
-      <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+      {/* Thumbnail image if available */}
+      {thumbnail && (
+        <div className="absolute inset-0">
+          <img
+            src={thumbnail}
+            alt={title}
+            className="w-full h-full object-cover rounded-t-2xl"
+          />
+          <div className="absolute inset-0 bg-black/20 rounded-t-2xl" />
+        </div>
+      )}
+
+      {/* Decorative elements - only show if no thumbnail */}
+      {!thumbnail && (
+        <>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+        </>
+      )}
 
       <div className="relative z-10">
-        <div className="w-10 h-1.5 bg-white/40 rounded-full mb-4" />
-        <BookOpen className="w-8 h-8 text-white/60 mb-3" />
+        {!thumbnail && <div className="w-10 h-1.5 bg-white/40 rounded-full mb-4" />}
+        {!thumbnail && <BookOpen className="w-8 h-8 text-white/60 mb-3" />}
       </div>
       <div className="relative z-10">
-        <h3 className="text-white font-bold text-base leading-tight mb-2 line-clamp-3">{title}</h3>
-        <p className="text-white/80 text-sm line-clamp-1">{author}</p>
+        <h3 className={`font-bold text-base leading-tight mb-2 line-clamp-3 ${thumbnail ? 'text-white drop-shadow-lg' : 'text-white'}`}>{title}</h3>
+        <p className={`text-sm line-clamp-1 ${thumbnail ? 'text-white drop-shadow-lg' : 'text-white/80'}`}>{author}</p>
       </div>
     </div>
   )
@@ -50,44 +66,28 @@ export function PreviewSections() {
 
   useEffect(() => {
     const loadVideos = async () => {
-      // Check localStorage first for cached videos
-      const cachedVideos = localStorage.getItem('islam-vn-home-videos')
-      const cacheTimestamp = localStorage.getItem('islam-vn-home-videos-timestamp')
-      const CACHE_DURATION = 60 * 60 * 1000 // 1 hour for home page
+      setLoading(true)
 
-      if (cachedVideos && cacheTimestamp) {
-        const cacheAge = Date.now() - parseInt(cacheTimestamp)
-        if (cacheAge < CACHE_DURATION) {
-          try {
-            const parsedVideos = JSON.parse(cachedVideos)
-            if (parsedVideos && parsedVideos.length > 0) {
-              setVideos(parsedVideos.slice(0, 4))
-              setLoading(false)
-              return // Don't make API call if cache is fresh
-            }
-          } catch (err) {
-            console.error('Error parsing cached home videos:', err)
-          }
-        }
-      }
-
-      // Only make API call if cache is stale or empty
       try {
-        setLoading(true)
-        const response = await fetch('/api/videos?maxResults=4')
+        // Use the same API endpoint as videos page for consistency
+        const response = await fetch('/api/videos?maxResults=4&page=1', {
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+
         if (!response.ok) {
-          throw new Error('Failed to fetch videos')
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
+
         const data = await response.json()
 
-        if (data.videos && data.videos.length > 0) {
-          const homeVideos = data.videos.slice(0, 4)
-          setVideos(homeVideos)
-          // Cache for home page
-          localStorage.setItem('islam-vn-home-videos', JSON.stringify(homeVideos))
-          localStorage.setItem('islam-vn-home-videos-timestamp', Date.now().toString())
+        if (data.videos && Array.isArray(data.videos) && data.videos.length > 0) {
+          setVideos(data.videos)
+          console.log(`Successfully loaded ${data.videos.length} videos for home page`)
         } else {
-          // Use fallback if no videos
+          console.warn('No videos received from API, using fallback data')
+          // Use fallback data if API returns empty
           setVideos([
             { id: "dQw4w9WgXcQ", title: "Understanding Tawheed", viewCount: "12K", thumbnail: "/islamic-lecture-mosque.jpg", description: "", duration: "45:30", publishedAt: "", channelTitle: "Islamic Lectures" },
             { id: "9bZkp7q19f0", title: "The Beauty of Salah", viewCount: "8.5K", thumbnail: "/muslim-prayer-dawn.jpg", description: "", duration: "32:15", publishedAt: "", channelTitle: "Islamic Lectures" },
@@ -96,7 +96,7 @@ export function PreviewSections() {
           ])
         }
       } catch (err) {
-        console.error('Error loading home videos:', err)
+        console.warn('Failed to load videos from API, using fallback data:', err.message || 'Unknown error')
         // Use fallback data if API fails
         setVideos([
           { id: "dQw4w9WgXcQ", title: "Understanding Tawheed", viewCount: "12K", thumbnail: "/islamic-lecture-mosque.jpg", description: "", duration: "45:30", publishedAt: "", channelTitle: "Islamic Lectures" },
@@ -141,7 +141,7 @@ export function PreviewSections() {
                   const newUrl = new URL(window.location.href)
                   newUrl.searchParams.set('video', video.id)
                   window.history.pushState({}, '', newUrl.toString())
-                }} className="w-full text-left">
+                }} className="w-full text-left cursor-pointer">
                   <div className="relative aspect-video">
                     <img
                       src={video.thumbnail || "/placeholder.svg"}
@@ -179,7 +179,7 @@ export function PreviewSections() {
           {books.slice(0, 4).map((book, index) => (
             <CardWrapper key={book.id} delay={index * 0.1}>
               <Link href={`/books/${book.id}`}>
-                <BookCover title={book.title} author={book.author} color={book.color} />
+                <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
               </Link>
             </CardWrapper>
           ))}

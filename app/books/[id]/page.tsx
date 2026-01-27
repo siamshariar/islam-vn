@@ -126,17 +126,26 @@ export default function BookDetailPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button size="lg" className="flex-1 rounded-xl bg-emerald hover:bg-emerald/90 text-white">
-                <BookOpen className="w-5 h-5 mr-2" />
-                Read Now (PDF)
+              <Button
+                size="lg"
+                className="flex-1 rounded-xl bg-emerald hover:bg-emerald/90 text-white"
+                asChild
+              >
+                <a href={book.pdfUrl} target="_blank" rel="noopener noreferrer">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Read Now (PDF)
+                </a>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 className="flex-1 rounded-xl border-emerald text-emerald hover:bg-emerald/10 bg-transparent"
+                asChild
               >
-                <Download className="w-5 h-5 mr-2" />
-                Download
+                <a href={book.pdfUrl} download>
+                  <Download className="w-5 h-5 mr-2" />
+                  Download
+                </a>
               </Button>
             </div>
 

@@ -42,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${inter.className} font-sans antialiased`}>
+      <body className={`${inter.className} font-sans antialiased`} suppressHydrationWarning>
         {children}
         <Analytics />
       </body>

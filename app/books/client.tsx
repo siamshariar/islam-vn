@@ -8,22 +8,39 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { books } from "@/lib/books"
 
-function BookCover({ title, author, color }: { title: string; author: string; color: string }) {
+function BookCover({ title, author, color, thumbnail }: { title: string; author: string; color: string; thumbnail?: string | null }) {
+  const isActualThumbnail = thumbnail && thumbnail !== "https://islamhouse.com/logo_IslamHouse.jpg";
   return (
     <div
       className={`aspect-[3/4] bg-gradient-to-br ${color} p-5 flex flex-col justify-between rounded-t-2xl relative overflow-hidden`}
     >
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
-      <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+      {/* Thumbnail image if available and not default logo */}
+      {isActualThumbnail && (
+        <div className="absolute inset-0">
+          <img
+            src={thumbnail}
+            alt={title}
+            className="w-full h-full object-cover rounded-t-2xl"
+          />
+          <div className="absolute inset-0 bg-black/20 rounded-t-2xl" />
+        </div>
+      )}
+
+      {/* Decorative elements - only show if no actual thumbnail */}
+      {!isActualThumbnail && (
+        <>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+        </>
+      )}
 
       <div className="relative z-10">
-        <div className="w-10 h-1.5 bg-white/40 rounded-full mb-4" />
-        <BookOpen className="w-8 h-8 text-white/60 mb-3" />
+        {!isActualThumbnail && <div className="w-10 h-1.5 bg-white/40 rounded-full mb-4" />}
+        {!isActualThumbnail && <BookOpen className="w-8 h-8 text-white/60 mb-3" />}
       </div>
       <div className="relative z-10">
-        <h3 className="text-white font-bold text-base leading-tight mb-2 line-clamp-3">{title}</h3>
-        <p className="text-white/80 text-sm line-clamp-1">{author}</p>
+        <h3 className={`font-bold text-base leading-tight mb-2 line-clamp-3 ${isActualThumbnail ? 'text-white drop-shadow-lg' : 'text-white'}`}>{title}</h3>
+        <p className={`text-sm line-clamp-1 ${isActualThumbnail ? 'text-white drop-shadow-lg' : 'text-white/80'}`}>{author}</p>
       </div>
     </div>
   )
@@ -60,7 +77,7 @@ export default function BooksClient() {
         {filteredBooks.map((book, index) => (
           <CardWrapper key={book.id} delay={index * 0.05}>
             <Link href={`/books/${book.id}`}>
-              <BookCover title={book.title} author={book.author} color={book.color} />
+              <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
             </Link>
             <div className="p-4 flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{book.pages} pages</span>

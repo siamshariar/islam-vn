@@ -1,13 +1,9 @@
 import { google } from 'googleapis';
-
-const youtube = google.youtube({
-  version: 'v3',
-  auth: process.env.YOUTUBE_API_KEY,
-});
+import { youtubeAPIManager } from './youtube-api-manager';
 
 // In-memory cache for API responses
 const apiCache = new Map<string, { data: YouTubeVideo[], timestamp: number }>();
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (increased from 4 hours)
 
 export interface YouTubeVideo {
   id: string;
@@ -83,7 +79,7 @@ function formatViewCount(count: string): string {
   return num.toString();
 }
 
-// Fetch videos from a channel
+// Fetch videos from a channel with automatic API key rotation
 async function fetchChannelVideos(channelUrl: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
   try {
     const channelId = extractChannelId(channelUrl);
@@ -92,101 +88,110 @@ async function fetchChannelVideos(channelUrl: string, maxResults: number = 10): 
       return [];
     }
 
-    // First, get the channel ID if it's a handle
-    let actualChannelId = channelId;
-    if (channelId.startsWith('@')) {
-      try {
-        // Try to search for the channel by handle (without @)
-        const searchQuery = channelId.substring(1); // Remove the @ symbol
-        const searchResponse = await youtube.search.list({
-          part: ['snippet'],
-          q: searchQuery,
-          type: ['channel'],
-          maxResults: 5, // Get a few results to find the right one
+    // Use API manager with data validation
+    return await youtubeAPIManager.executeWithDataValidation(
+      async (youtubeClient) => {
+        // First, get the channel ID if it's a handle
+        let actualChannelId = channelId;
+        if (channelId.startsWith('@')) {
+          try {
+            // Try to search for the channel by handle (without @)
+            const searchQuery = channelId.substring(1); // Remove the @ symbol
+            const searchResponse = await youtubeClient.search.list({
+              part: ['snippet'],
+              q: searchQuery,
+              type: ['channel'],
+              maxResults: 5, // Get a few results to find the right one
+            });
+
+            if (searchResponse.data.items && searchResponse.data.items.length > 0) {
+              // Find the channel that matches the handle
+              const matchingChannel = searchResponse.data.items.find(item =>
+                item.snippet?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.snippet?.channelTitle?.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+
+              if (matchingChannel) {
+                actualChannelId = matchingChannel.snippet?.channelId || channelId;
+              } else {
+                // If no exact match, take the first result
+                actualChannelId = searchResponse.data.items[0].snippet?.channelId || channelId;
+              }
+            } else {
+              console.error(`No channels found for search query: ${searchQuery}`);
+              return []; // Return empty array to trigger fallback
+            }
+          } catch (error) {
+            console.error(`Error searching for channel ${channelId}:`, error);
+            return []; // Return empty array to trigger fallback
+          }
+        } else if (channelId.startsWith('UC') && channelId.length === 24) {
+          // It's already a channel ID
+          actualChannelId = channelId;
+        }
+
+        // Get channel uploads playlist
+        const channelResponse = await youtubeClient.channels.list({
+          part: ['contentDetails'],
+          id: [actualChannelId],
         });
 
-        if (searchResponse.data.items && searchResponse.data.items.length > 0) {
-          // Find the channel that matches the handle
-          const matchingChannel = searchResponse.data.items.find(item =>
-            item.snippet?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.snippet?.channelTitle?.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-
-          if (matchingChannel) {
-            actualChannelId = matchingChannel.snippet?.channelId || channelId;
-          } else {
-            // If no exact match, take the first result
-            actualChannelId = searchResponse.data.items[0].snippet?.channelId || channelId;
-          }
-        } else {
-          console.error(`No channels found for search query: ${searchQuery}`);
-          return [];
+        if (!channelResponse.data.items || channelResponse.data.items.length === 0) {
+          console.error(`Channel not found: ${channelUrl} (ID: ${actualChannelId})`);
+          return []; // Return empty array to trigger fallback
         }
-      } catch (error) {
-        console.error(`Error searching for channel ${channelId}:`, error);
-        return [];
-      }
-    } else if (channelId.startsWith('UC') && channelId.length === 24) {
-      // It's already a channel ID
-      actualChannelId = channelId;
-    }
 
-    // Get channel uploads playlist
-    const channelResponse = await youtube.channels.list({
-      part: ['contentDetails'],
-      id: [actualChannelId],
-    });
+        const uploadsPlaylistId = channelResponse.data.items[0].contentDetails?.relatedPlaylists?.uploads;
+        if (!uploadsPlaylistId) {
+          console.error(`No uploads playlist found for channel: ${channelUrl}`);
+          return []; // Return empty array to trigger fallback
+        }
 
-    if (!channelResponse.data.items || channelResponse.data.items.length === 0) {
-      console.error(`Channel not found: ${channelUrl} (ID: ${actualChannelId})`);
-      return [];
-    }
+        // Get videos from uploads playlist
+        const playlistResponse = await youtubeClient.playlistItems.list({
+          part: ['snippet', 'contentDetails'],
+          playlistId: uploadsPlaylistId,
+          maxResults,
+        });
 
-    const uploadsPlaylistId = channelResponse.data.items[0].contentDetails?.relatedPlaylists?.uploads;
-    if (!uploadsPlaylistId) {
-      console.error(`No uploads playlist found for channel: ${channelUrl}`);
-      return [];
-    }
+        if (!playlistResponse.data.items || playlistResponse.data.items.length === 0) {
+          console.error(`No videos found in uploads playlist for channel: ${channelUrl}`);
+          return []; // Return empty array to trigger fallback
+        }
 
-    // Get videos from uploads playlist
-    const playlistResponse = await youtube.playlistItems.list({
-      part: ['snippet', 'contentDetails'],
-      playlistId: uploadsPlaylistId,
-      maxResults,
-    });
+        const videoIds = playlistResponse.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
 
-    if (!playlistResponse.data.items || playlistResponse.data.items.length === 0) {
-      console.error(`No videos found in uploads playlist for channel: ${channelUrl}`);
-      return [];
-    }
+        // Get video details including duration and view count
+        const videoResponse = await youtubeClient.videos.list({
+          part: ['snippet', 'contentDetails', 'statistics'],
+          id: videoIds,
+        });
 
-    const videoIds = playlistResponse.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
+        if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
+          return []; // Return empty array to trigger fallback
+        }
 
-    // Get video details including duration and view count
-    const videoResponse = await youtube.videos.list({
-      part: ['snippet', 'contentDetails', 'statistics'],
-      id: videoIds,
-    });
-
-    if (!videoResponse.data.items) return [];
-
-    return videoResponse.data.items.map(video => ({
-      id: video.id!,
-      title: video.snippet?.title || 'Untitled',
-      description: video.snippet?.description || '',
-      thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
-      duration: parseDuration(video.contentDetails?.duration || 'PT0S'),
-      viewCount: formatViewCount(video.statistics?.viewCount || '0'),
-      publishedAt: video.snippet?.publishedAt || '',
-      channelTitle: video.snippet?.channelTitle || '',
-    }));
+        return videoResponse.data.items.map(video => ({
+          id: video.id!,
+          title: video.snippet?.title || 'Untitled',
+          description: video.snippet?.description || '',
+          thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
+          duration: parseDuration(video.contentDetails?.duration || 'PT0S'),
+          viewCount: formatViewCount(video.statistics?.viewCount || '0'),
+          publishedAt: video.snippet?.publishedAt || '',
+          channelTitle: video.snippet?.channelTitle || '',
+        }));
+      },
+      (videos: YouTubeVideo[]) => videos.length > 0, // Validate that we got actual videos
+      `fetchChannelVideos(${channelUrl})`
+    );
   } catch (error) {
     console.error(`Error fetching videos from channel ${channelUrl}:`, error);
     return [];
   }
 }
 
-// Fetch videos from a playlist
+// Fetch videos from a playlist with automatic API key rotation
 async function fetchPlaylistVideos(playlistUrl: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
   try {
     const playlistIdMatch = playlistUrl.match(/[?&]list=([^#\&\?]*)/);
@@ -197,34 +202,49 @@ async function fetchPlaylistVideos(playlistUrl: string, maxResults: number = 10)
 
     const playlistId = playlistIdMatch[1];
 
-    const response = await youtube.playlistItems.list({
-      part: ['snippet', 'contentDetails'],
-      playlistId,
-      maxResults,
-    });
+    // Use API manager with data validation
+    return await youtubeAPIManager.executeWithDataValidation(
+      async (youtubeClient) => {
+        const response = await youtubeClient.playlistItems.list({
+          part: ['snippet', 'contentDetails'],
+          playlistId,
+          maxResults,
+        });
 
-    if (!response.data.items) return [];
+        if (!response.data.items || response.data.items.length === 0) {
+          return []; // Return empty array to trigger fallback
+        }
 
-    const videoIds = response.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
+        const videoIds = response.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
 
-    // Get video details
-    const videoResponse = await youtube.videos.list({
-      part: ['snippet', 'contentDetails', 'statistics'],
-      id: videoIds,
-    });
+        if (videoIds.length === 0) {
+          return []; // Return empty array to trigger fallback
+        }
 
-    if (!videoResponse.data.items) return [];
+        // Get video details
+        const videoResponse = await youtubeClient.videos.list({
+          part: ['snippet', 'contentDetails', 'statistics'],
+          id: videoIds,
+        });
 
-    return videoResponse.data.items.map(video => ({
-      id: video.id!,
-      title: video.snippet?.title || 'Untitled',
-      description: video.snippet?.description || '',
-      thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
-      duration: parseDuration(video.contentDetails?.duration || 'PT0S'),
-      viewCount: formatViewCount(video.statistics?.viewCount || '0'),
-      publishedAt: video.snippet?.publishedAt || '',
-      channelTitle: video.snippet?.channelTitle || '',
-    }));
+        if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
+          return []; // Return empty array to trigger fallback
+        }
+
+        return videoResponse.data.items.map(video => ({
+          id: video.id!,
+          title: video.snippet?.title || 'Untitled',
+          description: video.snippet?.description || '',
+          thumbnail: video.snippet?.thumbnails?.high?.url || video.snippet?.thumbnails?.default?.url || '',
+          duration: parseDuration(video.contentDetails?.duration || 'PT0S'),
+          viewCount: formatViewCount(video.statistics?.viewCount || '0'),
+          publishedAt: video.snippet?.publishedAt || '',
+          channelTitle: video.snippet?.channelTitle || '',
+        }));
+      },
+      (videos: YouTubeVideo[]) => videos.length > 0, // Validate that we got actual videos
+      `fetchPlaylistVideos(${playlistUrl})`
+    );
   } catch (error) {
     console.error(`Error fetching videos from playlist ${playlistUrl}:`, error);
     return [];
@@ -236,10 +256,10 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   const cacheKey = `videos-${maxResultsPerSource}`;
   const now = Date.now();
 
-  // Check cache first
+  // Check cache first - be more aggressive with caching
   const cached = apiCache.get(cacheKey);
   if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    console.log('Returning cached videos');
+    console.log('Returning cached videos (cache age:', Math.round((now - cached.timestamp) / 60000), 'minutes)');
     return cached.data;
   }
 
@@ -258,23 +278,44 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   ];
 
   const allVideos: YouTubeVideo[] = [];
+  let quotaExceeded = false;
 
   for (const source of sources) {
+    if (quotaExceeded) {
+      // If quota was exceeded for one source, skip remaining sources
+      break;
+    }
+
     try {
       let videos: YouTubeVideo[] = [];
 
       if (source.includes('list=')) {
         // It's a playlist
-        videos = await fetchPlaylistVideos(source, maxResultsPerSource);
+        videos = await fetchPlaylistVideos(source, 3); // Reduced from maxResultsPerSource
       } else {
         // It's a channel
-        videos = await fetchChannelVideos(source, maxResultsPerSource);
+        videos = await fetchChannelVideos(source, 3); // Reduced from maxResultsPerSource
       }
 
       allVideos.push(...videos);
     } catch (error) {
       console.error(`Error fetching from ${source}:`, error);
+      // Check if it's a quota exceeded error
+      if (error instanceof Error && (error.message.includes('quota') || error.message.includes('exceeded') || error.message.includes('expired'))) {
+        console.log('YouTube API quota exceeded or key expired, will use fallback data');
+        quotaExceeded = true;
+      }
+      // Continue with other sources even if one fails
     }
+  }
+
+  // If quota was exceeded, return fallback videos immediately
+  if (quotaExceeded || allVideos.length === 0) {
+    console.log('Using fallback videos due to quota/API issues');
+    const fallbackVideos = getFallbackVideos();
+    // Cache the fallback videos to avoid repeated API calls
+    apiCache.set(cacheKey, { data: fallbackVideos, timestamp: now });
+    return fallbackVideos;
   }
 
   // Remove duplicates based on video ID and sort by published date (newest first)
@@ -290,4 +331,70 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   apiCache.set(cacheKey, { data: sortedVideos, timestamp: now });
 
   return sortedVideos;
+}
+
+// Fallback videos when API fails or quota exceeded
+function getFallbackVideos(): YouTubeVideo[] {
+  return [
+    {
+      id: "dQw4w9WgXcQ",
+      title: "Understanding Tawheed - The Oneness of Allah",
+      description: "Learn about the fundamental concept of Tawheed in Islam",
+      thumbnail: "/islamic-lecture-mosque.jpg",
+      duration: "45:30",
+      viewCount: "12K",
+      publishedAt: "2024-01-15T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "9bZkp7q19f0",
+      title: "The Beauty of Salah - Your Connection to Allah",
+      description: "Discover the spiritual benefits of prayer in Islam",
+      thumbnail: "/muslim-prayer-dawn.jpg",
+      duration: "32:15",
+      viewCount: "8.5K",
+      publishedAt: "2024-01-10T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "JGwWNGJdvx8",
+      title: "Stories of Prophet Muhammad (PBUH)",
+      description: "Inspiring stories from the life of Prophet Muhammad",
+      thumbnail: "/islamic-art-calligraphy.jpg",
+      duration: "1:02:45",
+      viewCount: "15K",
+      publishedAt: "2024-01-05T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "hTWKbfoikeg",
+      title: "Ramadan Preparation Guide",
+      description: "How to prepare spiritually for the month of Ramadan",
+      thumbnail: "/ramadan-moon-lanterns.jpg",
+      duration: "28:00",
+      viewCount: "20K",
+      publishedAt: "2024-01-01T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "N9qYF9DZPdw",
+      title: "Islamic Ethics in Daily Life",
+      description: "Applying Islamic principles to modern life challenges",
+      thumbnail: "/muslim-family-gathering.jpg",
+      duration: "35:10",
+      viewCount: "7.8K",
+      publishedAt: "2023-12-20T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "RgKAFK5djSk",
+      title: "Islamic Finance and Economics",
+      description: "Understanding Islamic principles in business and finance",
+      thumbnail: "/alhambra-islamic-architecture.jpg",
+      duration: "48:30",
+      viewCount: "13K",
+      publishedAt: "2023-12-15T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    }
+  ];
 }
