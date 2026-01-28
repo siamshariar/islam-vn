@@ -187,6 +187,34 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
     }
   }, [observerTarget, hasMoreData, isLoadingMore, isLoadingMoreFromApi, loadMore])
 
+  // Fallback scroll detection for browsers that don't support IntersectionObserver well
+  useEffect(() => {
+    let isThrottled = false
+
+    const handleScroll = () => {
+      if (isThrottled || !hasMoreData || isLoadingMore || isLoadingMoreFromApi) return
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+
+      // Trigger load more when user is within 200px of bottom
+      if (documentHeight - scrollTop - windowHeight < 200) {
+        console.log('Scroll detection triggered, loading more videos')
+        isThrottled = true
+        loadMore()
+        
+        // Reset throttle after a short delay
+        setTimeout(() => {
+          isThrottled = false
+        }, 1000)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, loadMore])
+
   if (showLoading) {
     return (
       <div className="px-4 lg:px-8 py-8">
