@@ -303,10 +303,10 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
 
       if (source.includes('list=')) {
         // It's a playlist - fetch more since it's more efficient
-        videos = await fetchPlaylistVideos(source, Math.min(maxResultsPerSource * 2, 10)); // Max 10 per playlist
+        videos = await fetchPlaylistVideos(source, Math.min(maxResultsPerSource * 2, 20)); // Increased max to 20 per playlist
       } else {
         // It's a channel - fetch less to save quota
-        videos = await fetchChannelVideos(source, Math.min(maxResultsPerSource, 3)); // Max 3 per channel
+        videos = await fetchChannelVideos(source, Math.min(maxResultsPerSource, 5)); // Increased max to 5 per channel
       }
 
       allVideos.push(...videos);
