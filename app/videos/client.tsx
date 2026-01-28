@@ -12,11 +12,17 @@ import { YouTubeVideo } from "@/lib/youtube-api"
 // SWR fetcher function
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-// Get key function for infinite loading
-const getKey = (pageIndex: number, previousPageData: any, initPlaylistId?: string) => {
-  // reached the end
+// Get key function for infinite loading - start from page 0 since initial videos are page 1
+const getKey = (pageIndex: number, previousPageData: any) => {
+  // If this is the first page and we have initial videos, don't fetch
+  if (pageIndex === 0 && initialVideos.length > 0) return null
+
+  // If previous page doesn't exist or has no more data, stop
   if (previousPageData && !previousPageData.hasMore) return null
-  return `/api/videos?maxResults=20&page=${pageIndex + 1}${initPlaylistId ? `&playlistId=${initPlaylistId}` : ''}`
+
+  // For pageIndex 0, we already have initial videos, so start from page 2
+  const actualPage = pageIndex + 1
+  return `/api/videos?maxResults=20&page=${actualPage}`
 }
 
 interface VideosClientProps {
@@ -31,23 +37,24 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [observerTarget, setObserverTarget] = useState<HTMLDivElement | null>(null)
 
-  // Use SWR Infinite for videos - start from page 1 since we have initial videos
+  // Use SWR Infinite for videos - start from page 1 (since page 0 is initial videos)
   const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(
     (...args) => getKey(...args),
     fetcher,
     {
-      revalidateOnMount: false, // Don't fetch on mount since we have initial data
+      revalidateOnMount: true, // Allow revalidation on mount
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 1800000, // 30 minutes deduping (increased from 5 minutes)
-      focusThrottleInterval: 1800000,
-      errorRetryInterval: 300000, // 5 minutes retry interval (increased from 1 minute)
-      shouldRetryOnError: false,
-      refreshInterval: 14400000, // Refresh every 4 hours (reduced from 10 minutes)
+      dedupingInterval: 300000, // 5 minutes deduping
+      focusThrottleInterval: 300000,
+      errorRetryInterval: 60000, // 1 minute retry interval
+      shouldRetryOnError: true,
+      refreshInterval: 0, // Disable automatic refresh
+      initialSize: 0, // Start with no additional pages
     }
   )
 
-  // Combine initial videos with API videos
+  // Combine initial videos with paginated API videos
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
   const allVideos = [...initialVideos, ...apiVideos]
 
@@ -56,30 +63,16 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
     index === self.findIndex(v => v.id === video.id)
   )
 
-  const isLoadingInitialData = !data && !error
-
-  // Cache videos data for home page to use
-  useEffect(() => {
-    if (videos.length > 0 && !isLoadingInitialData) {
-      try {
-        localStorage.setItem('islam-vn-videos-cache', JSON.stringify(videos))
-        localStorage.setItem('islam-vn-videos-cache-timestamp', Date.now().toString())
-        console.log('Cached videos data for home page use')
-      } catch (err) {
-        console.warn('Failed to cache videos data')
-      }
-    }
-  }, [videos, isLoadingInitialData])
-
-  const isLoadingMoreFromApi = isValidating && data && size > 0
+  const isLoadingInitialData = initialVideos.length === 0 && !data
+  const isLoadingMoreFromApi = isValidating && size > 0
   const isRefreshing = isValidating && size === 0
   const isEmpty = data?.[0]?.videos?.length === 0
-  const isReachingEnd = isEmpty || (data && data.length > 0 && !data[data.length - 1]?.hasMore)
+  const hasMoreData = data && data.length > 0 && data[data.length - 1]?.hasMore
 
-  // Show loading only if no initial videos
-  const showLoading = initialVideos.length === 0
+  // Show loading only if no initial videos and no API data
+  const showLoading = initialVideos.length === 0 && !data
 
-  // Show loading only when fetching more videos during scroll
+  // Show loading when fetching more videos during scroll
   const showLoadMoreLoading = isLoadingMoreFromApi || isLoadingMore
 
   // Handle URL params for modal
@@ -106,11 +99,10 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
 
   // Infinite scroll logic
   const loadMore = useCallback(() => {
-    if (!isReachingEnd && !isLoadingMore) {
-      setIsLoadingMore(true)
+    if (hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
       setSize(size + 1)
     }
-  }, [isReachingEnd, isLoadingMore, setSize, size])
+  }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, setSize, size])
 
   useEffect(() => {
     if (isLoadingMore && !isValidating) {
@@ -121,7 +113,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isReachingEnd && !isLoadingMore) {
+        if (entries[0].isIntersecting && hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
           loadMore()
         }
       },
@@ -137,7 +129,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
         observer.unobserve(observerTarget)
       }
     }
-  }, [observerTarget, isReachingEnd, isLoadingMore, loadMore])
+  }, [observerTarget, hasMoreData, isLoadingMore, isLoadingMoreFromApi, loadMore])
 
   if (showLoading) {
     return (
@@ -230,7 +222,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
           </div>
         )}
 
-        {!isReachingEnd && videos.length > 0 && (
+        {!isEmpty && hasMoreData && videos.length > 0 && (
           <div ref={setObserverTarget} className="flex justify-center mt-8 py-8">
             {showLoadMoreLoading && (
               <>

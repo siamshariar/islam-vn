@@ -1,19 +1,39 @@
 import VideosClient from './client'
-import { fetchAllVideos } from '@/lib/youtube-api'
 import { YouTubeVideo } from '@/lib/youtube-api'
 
-// Enable ISR - revalidate every 10 minutes
-export const revalidate = 600
+// Disable ISR for videos page to prevent build timeouts
+export const revalidate = false
+// Use dynamic rendering to avoid build-time API calls
+export const dynamic = 'force-dynamic'
 
 async function getInitialVideos(): Promise<YouTubeVideo[]> {
   try {
-    // Fetch more videos for initial load (e.g., 50 videos)
-    const videos = await fetchAllVideos(50)
-    return videos
+    // For Vercel deployment, use a shorter timeout and better error handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout for Vercel
+
+    const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/videos?maxResults=12&page=1`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.videos || [];
   } catch (error) {
-    console.error('Error fetching initial videos:', error)
+    console.error('Error fetching initial videos:', error);
+    // For Vercel, return empty array immediately to prevent build failures
+    if (process.env.VERCEL) {
+      console.log('Vercel environment detected, returning empty array to prevent build timeout');
+      return [];
+    }
     // Return empty array, client will handle fallback
-    return []
+    return [];
   }
 }
 

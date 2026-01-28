@@ -89,12 +89,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Set a timeout for API calls
+    // Set a timeout for API calls (reduced for Vercel)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for Vercel
 
     try {
-      const allVideos = await fetchAllVideos(3); // Reduced from 100 to save quota
+      // For pagination, we need to fetch all videos and then slice
+      // But optimize by using cache and reducing API calls
+      const allVideos = await fetchAllVideos(3); // Keep low to save quota
       clearTimeout(timeoutId);
 
       if (!allVideos || allVideos.length === 0) {
@@ -120,7 +122,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Implement pagination on the fetched videos
+      // Implement proper server-side pagination
       const startIndex = (page - 1) * maxResults;
       const endIndex = startIndex + maxResults;
       const paginatedVideos = allVideos.slice(startIndex, endIndex);
@@ -128,6 +130,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         videos: paginatedVideos,
         hasMore: endIndex < allVideos.length,
+        totalVideos: allVideos.length,
         apiStatus: {
           availableKeys: youtubeAPIManager.getAvailableKeysCount(),
           totalKeys: youtubeAPIManager.getTotalKeysCount(),
@@ -148,6 +151,53 @@ export async function GET(request: NextRequest) {
         const startIndex = (page - 1) * maxResults;
         const endIndex = startIndex + maxResults;
         const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
+        return NextResponse.json({
+          videos: paginatedVideos,
+          note: "Using fallback data due to quota/API issues",
+          hasMore: endIndex < fallbackVideos.length,
+          totalVideos: fallbackVideos.length,
+          apiStatus: {
+            availableKeys: youtubeAPIManager.getAvailableKeysCount(),
+            totalKeys: youtubeAPIManager.getTotalKeysCount(),
+            lastSuccessfulKey: youtubeAPIManager.getLastSuccessfulKeyIndex(),
+            keyUsageStats: youtubeAPIManager.getKeyUsageStats()
+          }
+        });
+      }
+
+      // For other errors, still try to return fallback data
+      const fallbackVideos = getFallbackVideos();
+      const startIndex = (page - 1) * maxResults;
+      const endIndex = startIndex + maxResults;
+      const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
+      return NextResponse.json({
+        videos: paginatedVideos,
+        note: "Using fallback data due to API error",
+        hasMore: endIndex < fallbackVideos.length,
+        totalVideos: fallbackVideos.length,
+        error: apiError?.message || 'Unknown API error'
+      });
+    }
+  } catch (error: any) {
+    console.error('Route error:', error);
+    // Return fallback data as last resort
+    const fallbackVideos = getFallbackVideos();
+    const maxResults = parseInt(new URL(request.url).searchParams.get('maxResults') || '20');
+    const page = parseInt(new URL(request.url).searchParams.get('page') || '1');
+    const startIndex = (page - 1) * maxResults;
+    const endIndex = startIndex + maxResults;
+    const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
+
+    return NextResponse.json({
+      videos: paginatedVideos,
+      note: "Using fallback data due to route error",
+      hasMore: endIndex < fallbackVideos.length,
+      totalVideos: fallbackVideos.length,
+      error: error?.message || 'Route processing error'
+    });
+  }
 
         return NextResponse.json({
           videos: paginatedVideos,
