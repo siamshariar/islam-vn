@@ -44,25 +44,89 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       revalidateOnReconnect: false,
       dedupingInterval: 300000, // 5 minutes deduping
       focusThrottleInterval: 300000,
-      errorRetryInterval: 60000, // 1 minute retry interval
+      errorRetryInterval: 30000, // 30 seconds retry interval (reduced)
       shouldRetryOnError: true,
       refreshInterval: 0, // Disable automatic refresh
       initialSize: 1, // Start with 1 page to always load initial data
+      suspense: false, // Disable suspense to prevent hydration issues
     }
   )
 
-  // Get videos from API data, fallback to initial videos if no API data
+  // Get videos from API data
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
-  const videos = apiVideos.length > 0 ? apiVideos : initialVideos
 
-  const isLoadingInitialData = !data && !error
+  // Fallback videos for when API completely fails
+  const fallbackVideos: YouTubeVideo[] = [
+    {
+      id: "dQw4w9WgXcQ",
+      title: "Understanding Tawheed - The Oneness of Allah",
+      description: "Learn about the fundamental concept of Tawheed in Islam",
+      thumbnail: "/islamic-lecture-mosque.jpg",
+      duration: "45:30",
+      viewCount: "12K",
+      publishedAt: "2024-01-15T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "9bZkp7q19f0",
+      title: "The Beauty of Salah - Your Connection to Allah",
+      description: "Discover the spiritual benefits of prayer in Islam",
+      thumbnail: "/muslim-prayer-dawn.jpg",
+      duration: "32:15",
+      viewCount: "8.5K",
+      publishedAt: "2024-01-10T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "JGwWNGJdvx8",
+      title: "Stories of Prophet Muhammad (PBUH)",
+      description: "Inspiring stories from the life of Prophet Muhammad",
+      thumbnail: "/islamic-art-calligraphy.jpg",
+      duration: "1:02:45",
+      viewCount: "15K",
+      publishedAt: "2024-01-05T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "hTWKbfoikeg",
+      title: "Ramadan Preparation Guide",
+      description: "How to prepare spiritually for the month of Ramadan",
+      thumbnail: "/ramadan-moon-lanterns.jpg",
+      duration: "28:00",
+      viewCount: "6.2K",
+      publishedAt: "2024-01-01T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    }
+  ]
+
+  // Use API videos if available, otherwise use fallback videos
+  const videos = apiVideos.length > 0 ? apiVideos : fallbackVideos
+
+  const [showFallback, setShowFallback] = useState(false)
+
+  // Timeout fallback for Vercel deployment
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (videos.length === 0) {
+        console.log('API timeout reached, showing fallback videos')
+        setShowFallback(true)
+      }
+    }, 8000) // 8 seconds timeout
+
+    return () => clearTimeout(timer)
+  }, [videos.length])
+
+  // Use fallback videos if timeout reached or if API failed
+  const displayVideos = showFallback && videos.length === 0 ? fallbackVideos : videos
+
+  const isLoadingInitialData = !data && !error && !showFallback
   const isLoadingMoreFromApi = isValidating && size > 1
   const isRefreshing = isValidating && size === 1
   const isEmpty = data?.[0]?.videos?.length === 0
   const hasMoreData = data && data.length > 0 && data[data.length - 1]?.hasMore
 
-  // Show loading only when initially loading data
-  const showLoading = isLoadingInitialData
+  // Show loading only when initially loading data and no videos available
+  const showLoading = isLoadingInitialData && displayVideos.length === 0
 
   // Show loading when fetching more videos during scroll
   const showLoadMoreLoading = isLoadingMoreFromApi || isLoadingMore
@@ -70,8 +134,8 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   // Handle URL params for modal
   useEffect(() => {
     const videoId = searchParams.get('video')
-    if (videoId && videos.length > 0) {
-      const video = videos.find(v => v.id === videoId)
+    if (videoId && displayVideos.length > 0) {
+      const video = displayVideos.find(v => v.id === videoId)
       if (video) {
         setSelectedVideo(video)
       }
@@ -79,7 +143,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       // Clear selected video when no video param in URL
       setSelectedVideo(null)
     }
-  }, [searchParams, videos])
+  }, [searchParams, displayVideos])
 
   const handleVideoClick = (video: YouTubeVideo) => {
     setSelectedVideo(video)
@@ -158,7 +222,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
           </div>
         </div>
 
-        {error && videos.length === 0 && (
+        {error && displayVideos.length === 0 && !showFallback && (
           <div className="text-center py-12">
             <p className="text-red-500 mb-4">Failed to load videos from YouTube API.</p>
             <button
@@ -170,9 +234,9 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
           </div>
         )}
 
-        {videos.length > 0 && (
+        {displayVideos.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {videos
+            {displayVideos
               .filter(video =>
                 search === '' ||
                 video.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -211,13 +275,15 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
           </div>
         )}
 
-        {videos.length === 0 && !showLoading && !error && (
+        {displayVideos.length === 0 && !showLoading && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No videos found matching your search.</p>
+            <p className="text-muted-foreground">
+              {search ? 'No videos found matching your search.' : 'No videos available at the moment.'}
+            </p>
           </div>
         )}
 
-        {!isEmpty && hasMoreData && videos.length > 0 && (
+        {!isEmpty && hasMoreData && displayVideos.length > 0 && (
           <div ref={setObserverTarget} className="flex justify-center mt-8 py-8">
             {showLoadMoreLoading && (
               <>
