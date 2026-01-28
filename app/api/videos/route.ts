@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     try {
       // For pagination, we need to fetch all videos and then slice
       // But optimize by using cache and reducing API calls
-      const allVideos = await fetchAllVideos(3); // Keep low to save quota
+      const allVideos = await fetchAllVideos(10); // Increased from 3 to get more videos for pagination
       clearTimeout(timeoutId);
 
       if (!allVideos || allVideos.length === 0) {

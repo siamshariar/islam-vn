@@ -12,15 +12,12 @@ import { YouTubeVideo } from "@/lib/youtube-api"
 // SWR fetcher function
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-// Get key function for infinite loading - start from page 0 since initial videos are page 1
+// Get key function for infinite loading - always start from page 1
 const getKey = (pageIndex: number, previousPageData: any) => {
-  // If this is the first page and we have initial videos, don't fetch
-  if (pageIndex === 0 && initialVideos.length > 0) return null
-
   // If previous page doesn't exist or has no more data, stop
   if (previousPageData && !previousPageData.hasMore) return null
 
-  // For pageIndex 0, we already have initial videos, so start from page 2
+  // Always start from page 1, let SWR handle pagination
   const actualPage = pageIndex + 1
   return `/api/videos?maxResults=20&page=${actualPage}`
 }
@@ -37,12 +34,12 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [observerTarget, setObserverTarget] = useState<HTMLDivElement | null>(null)
 
-  // Use SWR Infinite for videos - start from page 1 (since page 0 is initial videos)
+  // Use SWR Infinite for videos - always load from API
   const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(
     (...args) => getKey(...args),
     fetcher,
     {
-      revalidateOnMount: true, // Allow revalidation on mount
+      revalidateOnMount: true,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       dedupingInterval: 300000, // 5 minutes deduping
@@ -50,27 +47,22 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       errorRetryInterval: 60000, // 1 minute retry interval
       shouldRetryOnError: true,
       refreshInterval: 0, // Disable automatic refresh
-      initialSize: 0, // Start with no additional pages
+      initialSize: 1, // Start with 1 page to always load initial data
     }
   )
 
-  // Combine initial videos with paginated API videos
+  // Get videos from API data, fallback to initial videos if no API data
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
-  const allVideos = [...initialVideos, ...apiVideos]
+  const videos = apiVideos.length > 0 ? apiVideos : initialVideos
 
-  // Remove duplicates based on video ID
-  const videos = allVideos.filter((video, index, self) =>
-    index === self.findIndex(v => v.id === video.id)
-  )
-
-  const isLoadingInitialData = initialVideos.length === 0 && !data
-  const isLoadingMoreFromApi = isValidating && size > 0
-  const isRefreshing = isValidating && size === 0
+  const isLoadingInitialData = !data && !error
+  const isLoadingMoreFromApi = isValidating && size > 1
+  const isRefreshing = isValidating && size === 1
   const isEmpty = data?.[0]?.videos?.length === 0
   const hasMoreData = data && data.length > 0 && data[data.length - 1]?.hasMore
 
-  // Show loading only if no initial videos and no API data
-  const showLoading = initialVideos.length === 0 && !data
+  // Show loading only when initially loading data
+  const showLoading = isLoadingInitialData
 
   // Show loading when fetching more videos during scroll
   const showLoadMoreLoading = isLoadingMoreFromApi || isLoadingMore
@@ -100,6 +92,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   // Infinite scroll logic
   const loadMore = useCallback(() => {
     if (hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
+      console.log('Loading more videos, current size:', size)
       setSize(size + 1)
     }
   }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, setSize, size])
@@ -113,11 +106,13 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
+        const target = entries[0]
+        if (target.isIntersecting && hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
+          console.log('Intersection observer triggered, loading more videos')
           loadMore()
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: '100px' } // Add root margin for earlier loading
     )
 
     if (observerTarget) {
