@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { youtube_v3 } from 'googleapis';
 import { youtubeAPIManager } from './youtube-api-manager';
 
 // YouTube API Quota Management Strategy:
@@ -114,7 +115,7 @@ async function fetchChannelVideos(channelUrl: string, maxResults: number = 10): 
 
             if (searchResponse.data.items && searchResponse.data.items.length > 0) {
               // Find the channel that matches the handle
-              const matchingChannel = searchResponse.data.items.find(item =>
+              const matchingChannel = searchResponse.data.items.find((item: youtube_v3.Schema$SearchResult) =>
                 item.snippet?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.snippet?.channelTitle?.toLowerCase().includes(searchQuery.toLowerCase())
               );
@@ -167,7 +168,7 @@ async function fetchChannelVideos(channelUrl: string, maxResults: number = 10): 
           return []; // Return empty array to trigger fallback
         }
 
-        const videoIds = playlistResponse.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
+        const videoIds = playlistResponse.data.items.map((item: youtube_v3.Schema$PlaylistItem) => item.contentDetails?.videoId).filter(Boolean) as string[];
 
         // Get video details including duration and view count
         const videoResponse = await youtubeClient.videos.list({
@@ -223,7 +224,7 @@ async function fetchPlaylistVideos(playlistUrl: string, maxResults: number = 10)
           return []; // Return empty array to trigger fallback
         }
 
-        const videoIds = response.data.items.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
+        const videoIds = response.data.items.map((item: youtube_v3.Schema$PlaylistItem) => item.contentDetails?.videoId).filter(Boolean) as string[];
 
         if (videoIds.length === 0) {
           return []; // Return empty array to trigger fallback

@@ -1,22 +1,27 @@
-export const articles = [
-  {
-    id: "1",
-    title: "The Five Pillars of Islam: A Comprehensive Guide",
-    category: "Basics",
-    readTime: "8 min",
-    publishedDate: "January 15, 2026",
-    excerpt: "Discover the fundamental principles that form the foundation of Islamic faith and practice.",
-    featureImage: "/islamic-prayer-guide.jpg",
-    content: `The Five Pillars of Islam are the foundation of Muslim life and practice.`,
-  },
-  {
-    id: "2",
-    title: "Understanding Islamic Ethics in Daily Life",
-    category: "Lifestyle",
-    readTime: "6 min",
-    publishedDate: "January 10, 2026",
-    excerpt: "Learn how Islamic principles can guide your everyday decisions and interactions.",
-    featureImage: null,
-    content: `Islamic ethics provide a comprehensive framework for living a purposeful and morally upright life.`,
-  },
-]
+export interface Article {
+  id: string;
+  title: string;
+  category: string;
+  readTime: string;
+  publishedDate: string;
+  excerpt: string;
+  featureImage: string;
+  content: string;
+  author: string;
+  language: string;
+  pdfUrls: string[];
+  audioUrls: string[];
+  videoUrls: string[];
+  docUrls: string[];
+  detailUrl: string;
+  scrapedUrl: string;
+}
+
+import articlesData from './articles-data.json' assert { type: 'json' };
+
+// Remove duplicate articles based on ID
+const uniqueArticles = (articlesData as Article[]).filter((article: Article, index: number, self: Article[]) =>
+  index === self.findIndex((a: Article) => a.id === article.id)
+);
+
+export const articles: Article[] = uniqueArticles;

@@ -190,7 +190,10 @@ export function PreviewSections() {
       <section>
         <SectionHeader title="Articles" href="/articles" viewAllText="View All" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {articles.map((article, index) => (
+          {articles
+            .sort((a: any, b: any) => parseInt(b.id) - parseInt(a.id))
+            .slice(0, 4)
+            .map((article: any, index: number) => (
             <CardWrapper key={article.id} delay={index * 0.1}>
               <Link href={`/articles/${article.id}`} className="block">
                 <div className="p-5 flex items-start gap-4">

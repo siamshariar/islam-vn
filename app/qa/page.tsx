@@ -5,53 +5,9 @@ import { Search, HelpCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion"
+import { qaItems } from "@/lib/qa"
 
-const qaItems = [
-  {
-    id: "1",
-    question: "What are the basic beliefs in Islam?",
-    answer:
-      "Islam is built upon five fundamental beliefs: belief in Allah (God), belief in Angels, belief in the revealed Books, belief in the Prophets, and belief in the Day of Judgment. These beliefs form the foundation of Islamic faith and guide Muslims in their daily lives.",
-    category: "Beliefs",
-  },
-  {
-    id: "2",
-    question: "How do I perform the daily prayers (Salah)?",
-    answer:
-      "Salah is performed five times daily: Fajr (dawn), Dhuhr (noon), Asr (afternoon), Maghrib (sunset), and Isha (night). Each prayer involves specific postures including standing, bowing, and prostrating while reciting verses from the Quran. Proper ablution (wudu) must be performed before praying.",
-    category: "Worship",
-  },
-  {
-    id: "3",
-    question: "What is the significance of Ramadan?",
-    answer:
-      "Ramadan is the ninth month of the Islamic calendar during which Muslims fast from dawn to sunset. It commemorates the revelation of the Quran to Prophet Muhammad (PBUH). Fasting during Ramadan is one of the Five Pillars of Islam and is a time for spiritual reflection, increased devotion, and community.",
-    category: "Worship",
-  },
-  {
-    id: "4",
-    question: "Is there a Muslim community in Vietnam?",
-    answer:
-      "Yes! Vietnam has a vibrant Muslim community, primarily consisting of the Cham people who have practiced Islam for centuries. There are mosques throughout Vietnam, particularly in Ho Chi Minh City, An Giang, and Ninh Thuan provinces. Islam VN aims to support and connect Muslims across Vietnam.",
-    category: "Community",
-  },
-  {
-    id: "5",
-    question: "How can I learn to read the Quran?",
-    answer:
-      "Learning to read the Quran starts with learning Arabic letters and pronunciation (Tajweed). Many resources are available including local Quran classes, online courses, and mobile apps. Islam VN offers video tutorials and can connect you with teachers in your area.",
-    category: "Education",
-  },
-  {
-    id: "6",
-    question: "What are halal dietary guidelines?",
-    answer:
-      "Halal dietary guidelines prohibit consuming pork, alcohol, and any meat not slaughtered according to Islamic law. The animal must be healthy, slaughtered by a Muslim saying 'Bismillah' (In the name of Allah), and the blood must be drained. Seafood and vegetables are generally considered halal.",
-    category: "Lifestyle",
-  },
-]
-
-const categories = ["All", "Beliefs", "Worship", "Community", "Education", "Lifestyle"]
+const categories = ["All", "basic_islam", "beliefs", "charity", "conversion", "fasting", "general", "lifestyle", "new_muslim", "pilgrimage", "prayer", "prophet", "scripture", "shariah"]
 
 export default function QAPage() {
   const [search, setSearch] = useState("")

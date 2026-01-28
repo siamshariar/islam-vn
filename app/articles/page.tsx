@@ -8,7 +8,7 @@ import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { articles } from "@/lib/articles"
 
-const categories = ["All", "Basics", "Lifestyle", "Education", "Community", "History", "Worship", "Finance", "Family"]
+const categories = ["All", "Evidence Islam is Truth", "The Benefits of Islam", "Beliefs of Islam", "How to Convert to Islam", "Worship and Practice", "The Hereafter", "Stories of New Muslims", "Comparative Religion", "The Holy Quran", "The Prophet Muhammad", "Current Issues", "Islamic History", "Systems in Islam", "General"]
 
 export default function ArticlesPage() {
   const [search, setSearch] = useState("")
