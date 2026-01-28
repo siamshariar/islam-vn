@@ -144,29 +144,7 @@ export async function GET(request: NextRequest) {
       console.log('YouTube API Key present:', !!process.env.YOUTUBE_API_KEY);
       console.log('YouTube API Key length:', process.env.YOUTUBE_API_KEY?.length);
 
-      // Check if it's a quota exceeded error
-      if (apiError?.message?.includes('quota') || apiError?.message?.includes('exceeded') || apiError?.message?.includes('expired') || apiError?.code === 403) {
-        console.log('YouTube API quota exceeded or key expired, using fallback data');
-        const fallbackVideos = getFallbackVideos();
-        const startIndex = (page - 1) * maxResults;
-        const endIndex = startIndex + maxResults;
-        const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
-
-        return NextResponse.json({
-          videos: paginatedVideos,
-          note: "Using fallback data due to quota/API issues",
-          hasMore: endIndex < fallbackVideos.length,
-          totalVideos: fallbackVideos.length,
-          apiStatus: {
-            availableKeys: youtubeAPIManager.getAvailableKeysCount(),
-            totalKeys: youtubeAPIManager.getTotalKeysCount(),
-            lastSuccessfulKey: youtubeAPIManager.getLastSuccessfulKeyIndex(),
-            keyUsageStats: youtubeAPIManager.getKeyUsageStats()
-          }
-        });
-      }
-
-      // For other errors, still try to return fallback data
+      // For all API errors, return fallback data
       const fallbackVideos = getFallbackVideos();
       const startIndex = (page - 1) * maxResults;
       const endIndex = startIndex + maxResults;
@@ -197,58 +175,5 @@ export async function GET(request: NextRequest) {
       totalVideos: fallbackVideos.length,
       error: error?.message || 'Route processing error'
     });
-  }
-
-        return NextResponse.json({
-          videos: paginatedVideos,
-          note: "YouTube API quota exceeded or key expired, using fallback data",
-          hasMore: endIndex < fallbackVideos.length,
-          apiStatus: {
-            availableKeys: youtubeAPIManager.getAvailableKeysCount(),
-            totalKeys: youtubeAPIManager.getTotalKeysCount(),
-            lastSuccessfulKey: youtubeAPIManager.getLastSuccessfulKeyIndex(),
-            keyUsageStats: youtubeAPIManager.getKeyUsageStats()
-          }
-        });
-      }
-
-      const fallbackVideos = getFallbackVideos();
-      const startIndex = (page - 1) * maxResults;
-      const endIndex = startIndex + maxResults;
-      const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
-
-      return NextResponse.json({
-        videos: paginatedVideos,
-        note: "Using fallback data due to API error",
-        hasMore: endIndex < fallbackVideos.length,
-        apiStatus: {
-          availableKeys: youtubeAPIManager.getAvailableKeysCount(),
-          totalKeys: youtubeAPIManager.getTotalKeysCount(),
-          lastSuccessfulKey: youtubeAPIManager.getLastSuccessfulKeyIndex(),
-          keyUsageStats: youtubeAPIManager.getKeyUsageStats()
-        }
-      });
-    }
-  } catch (error) {
-    console.error('Route error:', error);
-    const fallbackVideos = getFallbackVideos();
-    const startIndex = 0;
-    const endIndex = 5;
-    const paginatedVideos = fallbackVideos.slice(startIndex, endIndex);
-
-    return NextResponse.json(
-      {
-        videos: paginatedVideos,
-        note: "Using fallback data due to route error",
-        hasMore: endIndex < fallbackVideos.length,
-        apiStatus: {
-          availableKeys: youtubeAPIManager.getAvailableKeysCount(),
-          totalKeys: youtubeAPIManager.getTotalKeysCount(),
-          lastSuccessfulKey: youtubeAPIManager.getLastSuccessfulKeyIndex(),
-          keyUsageStats: youtubeAPIManager.getKeyUsageStats()
-        }
-      },
-      { status: 500 }
-    );
   }
 }
