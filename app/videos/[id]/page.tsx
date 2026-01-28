@@ -17,10 +17,62 @@ let videosCache: YouTubeVideo[] = []
 let cacheTimestamp = 0
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes during build
 
+// Fallback videos for SEO during build time
+function getFallbackVideos(): YouTubeVideo[] {
+  return [
+    {
+      id: "dQw4w9WgXcQ",
+      title: "Understanding Tawheed - The Oneness of Allah",
+      description: "Learn about the fundamental concept of Tawheed in Islam",
+      thumbnail: "/islamic-lecture-mosque.jpg",
+      duration: "45:30",
+      viewCount: "12K",
+      publishedAt: "2024-01-15T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "9bZkp7q19f0",
+      title: "The Beauty of Salah - Your Connection to Allah",
+      description: "Discover the spiritual benefits of prayer in Islam",
+      thumbnail: "/muslim-prayer-dawn.jpg",
+      duration: "32:15",
+      viewCount: "8.5K",
+      publishedAt: "2024-01-10T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "JGwWNGJdvx8",
+      title: "Stories of Prophet Muhammad (PBUH)",
+      description: "Inspiring stories from the life of Prophet Muhammad",
+      thumbnail: "/islamic-art-calligraphy.jpg",
+      duration: "1:02:45",
+      viewCount: "15K",
+      publishedAt: "2024-01-05T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "hTWKbfoikeg",
+      title: "Ramadan Preparation Guide",
+      description: "How to prepare spiritually for the month of Ramadan",
+      thumbnail: "/ramadan-moon-lanterns.jpg",
+      duration: "28:00",
+      viewCount: "6.2K",
+      publishedAt: "2024-01-01T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    }
+  ]
+}
+
 const getAllVideos = async (): Promise<YouTubeVideo[]> => {
   const now = Date.now()
   if (videosCache.length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
     return videosCache
+  }
+
+  // During build time, return fallback videos to avoid API calls
+  if (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_BUILD === '1') {
+    console.log('Build time detected in generateStaticParams, using fallback videos for SEO')
+    return getFallbackVideos()
   }
 
   try {
@@ -35,8 +87,8 @@ const getAllVideos = async (): Promise<YouTubeVideo[]> => {
     return videosCache
   } catch (error) {
     console.error('Error fetching videos:', error)
-    // Return cached data if available, otherwise empty array
-    return videosCache.length > 0 ? videosCache : []
+    // Return cached data if available, otherwise fallback videos
+    return videosCache.length > 0 ? videosCache : getFallbackVideos()
   }
 }
 
