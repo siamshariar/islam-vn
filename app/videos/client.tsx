@@ -136,7 +136,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       <div className="px-4 lg:px-8 py-8">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-emerald" />
-          <span className="ml-2 text-muted-foreground">Loading videos from YouTube...</span>
+          <span className="ml-2 text-muted-foreground">Loading videos...</span>
         </div>
       </div>
     )
