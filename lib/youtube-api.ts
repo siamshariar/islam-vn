@@ -1,9 +1,17 @@
 import { google } from 'googleapis';
 import { youtubeAPIManager } from './youtube-api-manager';
 
+// YouTube API Quota Management Strategy:
+// - Free tier: 10,000 units/day per API key
+// - Search requests: 100 units each
+// - Channel/Video/Playlist requests: 1 unit each
+// - We use multiple keys and aggressive caching to maximize quota usage
+// - When quota exceeded, fallback to static data with shorter cache duration
+
 // In-memory cache for API responses
-const apiCache = new Map<string, { data: YouTubeVideo[], timestamp: number }>();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (increased from 4 hours)
+const apiCache = new Map<string, { data: YouTubeVideo[], timestamp: number, isQuotaExceeded?: boolean }>();
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours for successful responses
+const QUOTA_EXCEEDED_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours for quota exceeded responses
 
 export interface YouTubeVideo {
   id: string;
@@ -171,7 +179,7 @@ async function fetchChannelVideos(channelUrl: string, maxResults: number = 10): 
           return []; // Return empty array to trigger fallback
         }
 
-        return videoResponse.data.items.map(video => ({
+        return videoResponse.data.items.map((video: youtube_v3.Schema$Video) => ({
           id: video.id!,
           title: video.snippet?.title || 'Untitled',
           description: video.snippet?.description || '',
@@ -231,7 +239,7 @@ async function fetchPlaylistVideos(playlistUrl: string, maxResults: number = 10)
           return []; // Return empty array to trigger fallback
         }
 
-        return videoResponse.data.items.map(video => ({
+        return videoResponse.data.items.map((video: youtube_v3.Schema$Video) => ({
           id: video.id!,
           title: video.snippet?.title || 'Untitled',
           description: video.snippet?.description || '',
@@ -251,16 +259,22 @@ async function fetchPlaylistVideos(playlistUrl: string, maxResults: number = 10)
   }
 }
 
-// Main function to fetch all videos from specified sources
 export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<YouTubeVideo[]> {
   const cacheKey = `videos-${maxResultsPerSource}`;
   const now = Date.now();
 
   // Check cache first - be more aggressive with caching
   const cached = apiCache.get(cacheKey);
-  if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    console.log('Returning cached videos (cache age:', Math.round((now - cached.timestamp) / 60000), 'minutes)');
-    return cached.data;
+  if (cached) {
+    const cacheAge = now - cached.timestamp;
+    const isCacheValid = cached.isQuotaExceeded
+      ? cacheAge < QUOTA_EXCEEDED_CACHE_DURATION
+      : cacheAge < CACHE_DURATION;
+
+    if (isCacheValid) {
+      console.log(`Returning cached videos (cache age: ${Math.round(cacheAge / 60000)} minutes, quota exceeded: ${cached.isQuotaExceeded || false})`);
+      return cached.data;
+    }
   }
 
   console.log('Fetching videos from YouTube channels and playlists...');
@@ -268,13 +282,11 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   console.log('YouTube API Key starts with:', process.env.YOUTUBE_API_KEY?.substring(0, 10) + '...');
 
   const sources = [
-    'https://www.youtube.com/@jaddukaji-abuzizou',
-    'https://www.youtube.com/@abdullatif-mk8tp',
-    'http://www.youtube.com/@SultanL.K',
-    'http://www.youtube.com/@abufawzaan4440',
-    'https://www.youtube.com/@islamlavn',
-    'https://www.youtube.com/@saleemhammad17',
+    // Prioritize playlist (cheaper API calls) over individual channels
     'https://www.youtube.com/watch?v=KoZ83cnoZyU&list=PLnfYS3rBXoKSDiGuqF_DUgsfUIDfItqyw&index=12',
+    // Only fetch from 2-3 channels instead of 6 to save quota
+    'https://www.youtube.com/@jaddukaji-abuzizou',
+    'https://www.youtube.com/@islamlavn',
   ];
 
   const allVideos: YouTubeVideo[] = [];
@@ -290,11 +302,11 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
       let videos: YouTubeVideo[] = [];
 
       if (source.includes('list=')) {
-        // It's a playlist
-        videos = await fetchPlaylistVideos(source, 3); // Reduced from maxResultsPerSource
+        // It's a playlist - fetch more since it's more efficient
+        videos = await fetchPlaylistVideos(source, Math.min(maxResultsPerSource * 2, 10)); // Max 10 per playlist
       } else {
-        // It's a channel
-        videos = await fetchChannelVideos(source, 3); // Reduced from maxResultsPerSource
+        // It's a channel - fetch less to save quota
+        videos = await fetchChannelVideos(source, Math.min(maxResultsPerSource, 3)); // Max 3 per channel
       }
 
       allVideos.push(...videos);
@@ -313,8 +325,8 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   if (quotaExceeded || allVideos.length === 0) {
     console.log('Using fallback videos due to quota/API issues');
     const fallbackVideos = getFallbackVideos();
-    // Cache the fallback videos to avoid repeated API calls
-    apiCache.set(cacheKey, { data: fallbackVideos, timestamp: now });
+    // Cache the fallback videos with quota exceeded flag for shorter duration
+    apiCache.set(cacheKey, { data: fallbackVideos, timestamp: now, isQuotaExceeded: true });
     return fallbackVideos;
   }
 
@@ -328,7 +340,7 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   const sortedVideos = uniqueVideos.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
   // Cache the result
-  apiCache.set(cacheKey, { data: sortedVideos, timestamp: now });
+  apiCache.set(cacheKey, { data: sortedVideos, timestamp: now, isQuotaExceeded: false });
 
   return sortedVideos;
 }

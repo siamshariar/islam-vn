@@ -96,7 +96,7 @@ export function PreviewSections() {
           ])
         }
       } catch (err) {
-        console.warn('Failed to load videos from API, using fallback data:', err.message || 'Unknown error')
+        console.warn('Failed to load videos from API, using fallback data:', err instanceof Error ? err.message : 'Unknown error')
         // Use fallback data if API fails
         setVideos([
           { id: "dQw4w9WgXcQ", title: "Understanding Tawheed", viewCount: "12K", thumbnail: "/islamic-lecture-mosque.jpg", description: "", duration: "45:30", publishedAt: "", channelTitle: "Islamic Lectures" },

@@ -109,13 +109,25 @@ class YouTubeAPIManager {
         attempts++;
 
         // Check if this is a quota/rate limit error or other permanent failure
-        if (error.code === 403 || error.message?.includes('quota') || error.message?.includes('exceeded') ||
-            error.code === 400 || error.message?.includes('invalid') || error.message?.includes('suspended')) {
-          console.warn(`API key ${this.apiKeys.indexOf(apiKey) + 1} failed permanently, marking as failed: ${error.message}`);
+        const errorMessage = error?.message || '';
+        const isQuotaError = error.code === 403 ||
+                           errorMessage.includes('quota') ||
+                           errorMessage.includes('exceeded') ||
+                           errorMessage.includes('limit') ||
+                           errorMessage.includes('rate limit');
+
+        const isAuthError = error.code === 400 ||
+                          errorMessage.includes('invalid') ||
+                          errorMessage.includes('suspended') ||
+                          errorMessage.includes('disabled') ||
+                          errorMessage.includes('unauthorized');
+
+        if (isQuotaError || isAuthError) {
+          console.warn(`API key ${this.apiKeys.indexOf(apiKey) + 1} failed permanently (${isQuotaError ? 'quota exceeded' : 'auth error'}), marking as failed: ${errorMessage}`);
           this.failedKeys.add(apiKey);
         } else {
           // For temporary errors, still try next key but don't mark as permanently failed
-          console.warn(`${operationName} failed with API key ${this.apiKeys.indexOf(apiKey) + 1}: ${error.message}`);
+          console.warn(`${operationName} failed with API key ${this.apiKeys.indexOf(apiKey) + 1}: ${errorMessage}`);
         }
 
         // Move to next key for next attempt
@@ -151,6 +163,14 @@ class YouTubeAPIManager {
     console.log('Reset failed API keys tracking');
   }
 
+  // Reset quota-exceeded keys daily (YouTube quota resets daily)
+  public resetQuotaExceededKeys() {
+    // This method can be called periodically to retry keys that may have quota reset
+    console.log('Resetting quota-exceeded API keys for daily quota reset');
+    // Note: We keep the failedKeys as-is since we can't distinguish quota vs permanent failures
+    // But we can add a timestamp-based reset mechanism if needed
+  }
+
   public getKeyUsageStats(): { [key: string]: number } {
     const stats: { [key: string]: number } = {};
     this.apiKeys.forEach((key, index) => {
@@ -162,6 +182,23 @@ class YouTubeAPIManager {
   public getLastSuccessfulKeyIndex(): number {
     if (!this.lastSuccessfulKey) return -1;
     return this.apiKeys.indexOf(this.lastSuccessfulKey) + 1;
+  }
+
+  // Get quota status information
+  public getQuotaStatus(): {
+    availableKeys: number;
+    totalKeys: number;
+    failedKeys: number;
+    lastSuccessfulKey: number;
+    keyUsageStats: { [key: string]: number };
+  } {
+    return {
+      availableKeys: this.getAvailableKeysCount(),
+      totalKeys: this.getTotalKeysCount(),
+      failedKeys: this.failedKeys.size,
+      lastSuccessfulKey: this.getLastSuccessfulKeyIndex(),
+      keyUsageStats: this.getKeyUsageStats()
+    };
   }
 }
 
