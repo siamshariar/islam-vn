@@ -99,25 +99,22 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
     }
   ]
 
-  // Use API videos if available, otherwise use fallback videos
-  const videos = apiVideos.length > 0 ? apiVideos : fallbackVideos
-
   const [showFallback, setShowFallback] = useState(false)
 
-  // Timeout fallback for Vercel deployment
+  // Timeout fallback for Vercel deployment - only show fallback after API fails
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (videos.length === 0) {
+      if (apiVideos.length === 0 && !isValidating) {
         console.log('API timeout reached, showing fallback videos')
         setShowFallback(true)
       }
     }, 8000) // 8 seconds timeout
 
     return () => clearTimeout(timer)
-  }, [videos.length])
+  }, [apiVideos.length, isValidating])
 
-  // Use fallback videos if timeout reached or if API failed
-  const displayVideos = showFallback && videos.length === 0 ? fallbackVideos : videos
+  // Use API videos if available, otherwise use fallback videos only after timeout
+  const displayVideos = apiVideos.length > 0 ? apiVideos : (showFallback ? fallbackVideos : [])
 
   const isLoadingInitialData = !data && !error && !showFallback
   const isLoadingMoreFromApi = isValidating && size > 1
@@ -125,8 +122,8 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   const isEmpty = data?.[0]?.videos?.length === 0
   const hasMoreData = data && data.length > 0 && data[data.length - 1]?.hasMore
 
-  // Show loading only when initially loading data and no videos available
-  const showLoading = isLoadingInitialData && displayVideos.length === 0
+  // Show loading only when initially loading data and no videos available and not showing fallback
+  const showLoading = isLoadingInitialData && displayVideos.length === 0 && !showFallback
 
   // Show loading when fetching more videos during scroll
   const showLoadMoreLoading = isLoadingMoreFromApi || isLoadingMore
