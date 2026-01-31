@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import VideosClient from './client'
 import { YouTubeVideo } from '@/lib/youtube-api'
 
@@ -15,5 +16,9 @@ async function getInitialVideos(): Promise<YouTubeVideo[]> {
 export default async function VideosPage() {
   const initialVideos = await getInitialVideos()
 
-  return <VideosClient initialVideos={initialVideos} />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VideosClient initialVideos={initialVideos} />
+    </Suspense>
+  )
 }

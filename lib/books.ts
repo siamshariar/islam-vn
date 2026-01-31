@@ -1,4 +1,4 @@
-import booksData from './books-data.json';
+import booksData from './books-data.json' assert { type: 'json' };
 
 export const books = booksData
   .map((book: any, index: number) => ({

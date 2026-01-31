@@ -135,7 +135,7 @@ export function PreviewSections() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {videos.map((video, index) => (
               <CardWrapper key={video.id} delay={index * 0.1}>
-                <button onClick={() => {
+                <button type="button" onClick={() => {
                   setSelectedVideo(video)
                   // Update URL with video ID
                   const newUrl = new URL(window.location.href)
@@ -216,21 +216,23 @@ export function PreviewSections() {
         </div>
       </section>
 
-      {/* Video Modal */}
-      <VideoModalHome
-        isOpen={!!selectedVideo}
-        onClose={() => {
-          setSelectedVideo(null)
-          // Remove video param from URL
-          const newUrl = new URL(window.location.href)
-          newUrl.searchParams.delete('video')
-          window.history.pushState({}, '', newUrl.toString())
-        }}
-        videoId={selectedVideo?.id}
-        title={selectedVideo?.title}
-        description={selectedVideo?.description}
-        playlistId="PLnfYS3rBXoKSDiGuqF_DUgsfUIDfItqyw"
-      />
+      {/* Video Modal: only render when selectedVideo exists and matches a loaded video */}
+      {selectedVideo && videos.find(v => v.id === selectedVideo.id) && (
+        <VideoModalHome
+          isOpen={true}
+          onClose={() => {
+            setSelectedVideo(null)
+            // Remove video param from URL
+            const newUrl = new URL(window.location.href)
+            newUrl.searchParams.delete('video')
+            window.history.pushState({}, '', newUrl.toString())
+          }}
+          videoId={selectedVideo.id}
+          title={selectedVideo.title}
+          description={selectedVideo.description}
+          playlistId="PLnfYS3rBXoKSDiGuqF_DUgsfUIDfItqyw"
+        />
+      )}
     </div>
   )
 }

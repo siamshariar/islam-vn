@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Play, Search, Loader2 } from "lucide-react"
+import { Play, Search, Loader2, X } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import VideoModal from "@/components/modal/VideoModal"
@@ -27,12 +27,29 @@ interface VideosClientProps {
 }
 
 export default function VideosClient({ initialVideos }: VideosClientProps) {
-  const router = useRouter()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null)
   const [search, setSearch] = useState("")
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [observerTarget, setObserverTarget] = useState<HTMLDivElement | null>(null)
+  const suppressOpenRef = useRef(false)
+
+  // Redirect to search page if there's a search query in URL
+  useEffect(() => {
+    const query = searchParams.get('q')
+    const videoParam = searchParams.get('video')
+    // Only redirect to search if `q` exists and there's no `video` param
+    if (query && !videoParam) {
+      router.replace(`/search/videos?q=${encodeURIComponent(query)}`)
+    }
+  }, [searchParams, router])
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const query = search.trim()
+    if (query) {
+      router.push(`/search/videos?q=${encodeURIComponent(query)}`)
+    }
+  }
 
   // Use SWR Infinite for videos - always load from API
   const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(
@@ -79,141 +96,112 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
     },
     {
       id: "JGwWNGJdvx8",
-      title: "Stories of Prophet Muhammad (PBUH)",
-      description: "Inspiring stories from the life of Prophet Muhammad",
-      thumbnail: "/islamic-art-calligraphy.jpg",
-      duration: "1:02:45",
+      title: "Ramadan Reflections - The Month of Mercy",
+      description: "Explore the spiritual significance of Ramadan",
+      thumbnail: "/ramadan-mosque-night.jpg",
+      duration: "28:45",
       viewCount: "15K",
       publishedAt: "2024-01-05T10:00:00Z",
       channelTitle: "Islamic Lectures"
     },
     {
       id: "hTWKbfoikeg",
-      title: "Ramadan Preparation Guide",
-      description: "How to prepare spiritually for the month of Ramadan",
-      thumbnail: "/ramadan-moon-lanterns.jpg",
-      duration: "28:00",
-      viewCount: "6.2K",
+      title: "The Life of Prophet Muhammad (PBUH)",
+      description: "A comprehensive overview of the Prophet's life",
+      thumbnail: "/prophet-muhammad-biography.jpg",
+      duration: "67:20",
+      viewCount: "25K",
       publishedAt: "2024-01-01T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "N9Q2I4fTxpM",
+      title: "Islamic Finance - Interest-Free Banking",
+      description: "Understanding the principles of Islamic finance",
+      thumbnail: "/islamic-finance-money.jpg",
+      duration: "41:10",
+      viewCount: "9K",
+      publishedAt: "2023-12-28T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "2Vv-BfVoq4g",
+      title: "Women in Islam - Rights and Responsibilities",
+      description: "Exploring the status of women in Islamic teachings",
+      thumbnail: "/muslim-women-education.jpg",
+      duration: "38:55",
+      viewCount: "18K",
+      publishedAt: "2023-12-25T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "eIho2S0ZahI",
+      title: "The Quran - A Source of Guidance",
+      description: "Understanding the miraculous nature of the Quran",
+      thumbnail: "/holy-quran-scripture.jpg",
+      duration: "52:30",
+      viewCount: "22K",
+      publishedAt: "2023-12-20T10:00:00Z",
+      channelTitle: "Islamic Lectures"
+    },
+    {
+      id: "dQw4w9WgXcQ",
+      title: "Islamic Art and Architecture",
+      description: "Appreciating the beauty of Islamic civilization",
+      thumbnail: "/islamic-art-architecture.jpg",
+      duration: "35:40",
+      viewCount: "11K",
+      publishedAt: "2023-12-15T10:00:00Z",
       channelTitle: "Islamic Lectures"
     }
   ]
 
-  const [showFallback, setShowFallback] = useState(false)
+  // Combine API videos with fallback videos
+  const videos = apiVideos.length > 0 ? apiVideos : fallbackVideos
 
-  // Timeout fallback for Vercel deployment - only show fallback after API fails
+  // Handle video param to open modal
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (apiVideos.length === 0 && !isValidating) {
-        console.log('API timeout reached, showing fallback videos')
-        setShowFallback(true)
-      }
-    }, 8000) // 8 seconds timeout
-
-    return () => clearTimeout(timer)
-  }, [apiVideos.length, isValidating])
-
-  // Use API videos if available, otherwise use fallback videos only after timeout
-  const displayVideos = apiVideos.length > 0 ? apiVideos : (showFallback ? fallbackVideos : [])
-
-  const isLoadingInitialData = !data && !error && !showFallback
-  const isLoadingMoreFromApi = isValidating && size > 1
-  const isRefreshing = isValidating && size === 1
-  const isEmpty = data?.[0]?.videos?.length === 0
-  const hasMoreData = data && data.length > 0 && data[data.length - 1]?.hasMore
-
-  // Show loading only when initially loading data and no videos available and not showing fallback
-  const showLoading = isLoadingInitialData && displayVideos.length === 0 && !showFallback
-
-  // Show loading when fetching more videos during scroll
-  const showLoadMoreLoading = isLoadingMoreFromApi || isLoadingMore
-
-  // Handle URL params for modal
-  useEffect(() => {
+    if (suppressOpenRef.current) return
     const videoId = searchParams.get('video')
-    if (videoId && displayVideos.length > 0) {
-      const video = displayVideos.find(v => v.id === videoId)
+    if (videoId && videos.length > 0) {
+      const video = videos.find(v => v.id === videoId)
       if (video) {
         setSelectedVideo(video)
       }
-    } else if (!videoId) {
-      // Clear selected video when no video param in URL
-      setSelectedVideo(null)
     }
-  }, [searchParams, displayVideos])
+  }, [searchParams, videos])
 
-  const handleVideoClick = (video: YouTubeVideo) => {
-    setSelectedVideo(video)
-    // Update URL with video ID
-    const newUrl = new URL(window.location.href)
-    newUrl.searchParams.set('video', video.id)
-    window.history.replaceState({}, '', newUrl.toString())
-  }
+  // Remove q param when modal opens to show clean URL
+  useEffect(() => {
+    if (selectedVideo) {
+      router.replace(`/videos?video=${selectedVideo.id}`)
+    }
+  }, [selectedVideo, router])
 
-  // Infinite scroll logic
+  // Remove video param when modal is closed
+  useEffect(() => {
+    if (!selectedVideo && searchParams.get('video')) {
+      const q = searchParams.get('q')
+      if (q) {
+        router.replace(`/search/videos?q=${encodeURIComponent(q)}`)
+      } else {
+        router.replace('/videos')
+      }
+    }
+  }, [selectedVideo, searchParams, router])
+
+  // Check if there's more data to load
+  const hasMoreData = data && data[data.length - 1]?.hasMore !== false
+  const isLoadingMore = isValidating && size > 1
+  const isLoadingMoreFromApi = isValidating && size === 1
+  const showLoading = !data && !error
+
+  // Load more function for manual loading
   const loadMore = useCallback(() => {
     if (hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
-      console.log('Loading more videos, current size:', size)
       setSize(size + 1)
     }
   }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, setSize, size])
-
-  useEffect(() => {
-    if (isLoadingMore && !isValidating) {
-      setIsLoadingMore(false)
-    }
-  }, [isValidating, isLoadingMore])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const target = entries[0]
-        if (target.isIntersecting && hasMoreData && !isLoadingMore && !isLoadingMoreFromApi) {
-          console.log('Intersection observer triggered, loading more videos')
-          loadMore()
-        }
-      },
-      { threshold: 0.1, rootMargin: '100px' } // Add root margin for earlier loading
-    )
-
-    if (observerTarget) {
-      observer.observe(observerTarget)
-    }
-
-    return () => {
-      if (observerTarget) {
-        observer.unobserve(observerTarget)
-      }
-    }
-  }, [observerTarget, hasMoreData, isLoadingMore, isLoadingMoreFromApi, loadMore])
-
-  // Fallback scroll detection for browsers that don't support IntersectionObserver well
-  useEffect(() => {
-    let isThrottled = false
-
-    const handleScroll = () => {
-      if (isThrottled || !hasMoreData || isLoadingMore || isLoadingMoreFromApi) return
-
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-
-      // Trigger load more when user is within 200px of bottom
-      if (documentHeight - scrollTop - windowHeight < 200) {
-        console.log('Scroll detection triggered, loading more videos')
-        isThrottled = true
-        loadMore()
-        
-        // Reset throttle after a short delay
-        setTimeout(() => {
-          isThrottled = false
-        }, 1000)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, loadMore])
 
   if (showLoading) {
     return (
@@ -232,107 +220,141 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-emerald mb-2">Islamic Videos</h1>
-            <p className="text-muted-foreground">Discover authentic Islamic content from trusted scholars and educators around the world.</p>
+            <h1 className="text-3xl font-bold text-emerald mb-2">
+              Islamic Videos
+            </h1>
+            <p className="text-muted-foreground">
+              Discover authentic Islamic content from trusted scholars and educators around the world.
+            </p>
           </div>
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search videos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search videos..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-9"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </form>
           </div>
         </div>
 
-        {error && displayVideos.length === 0 && !showFallback && (
-          <div className="text-center py-12">
-            <p className="text-red-500 mb-4">Failed to load videos from YouTube API.</p>
+        {/* Videos Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {videos.map((video, index) => (
+            <CardWrapper key={video.id} delay={index * 0.05}>
+              <div
+                className="group cursor-pointer"
+                onClick={() => {
+                  // Ensure open suppression is off when intentionally opening
+                  suppressOpenRef.current = false
+                  const params = new URLSearchParams()
+                  params.set('video', video.id)
+                  router.push(`/videos?${params.toString()}`)
+                  setSelectedVideo(video)
+                }}
+              >
+                <div className="aspect-video bg-muted rounded-t-2xl overflow-hidden relative">
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                    {video.duration}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors">
+                      <Play className="w-6 h-6 text-emerald ml-0.5" fill="currentColor" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-base line-clamp-2 mb-2 group-hover:text-emerald transition-colors">
+                    {video.title}
+                  </h3>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{video.viewCount} views</span>
+                    <span>{video.channelTitle}</span>
+                  </div>
+                </div>
+              </div>
+            </CardWrapper>
+          ))}
+        </div>
+
+        {/* Load More Button */}
+        {hasMoreData && (
+          <div className="flex justify-center mt-8">
             <button
-              onClick={() => mutate()}
-              className="px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald/90"
+              onClick={loadMore}
+              disabled={isLoadingMore || isLoadingMoreFromApi}
+              className="px-6 py-2 bg-emerald text-white rounded-xl hover:bg-emerald/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Try Again
+              {isLoadingMore || isLoadingMoreFromApi ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading...
+                </div>
+              ) : (
+                'Load More Videos'
+              )}
             </button>
-          </div>
-        )}
-
-        {displayVideos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayVideos
-              .filter(video =>
-                search === '' ||
-                video.title.toLowerCase().includes(search.toLowerCase()) ||
-                video.description.toLowerCase().includes(search.toLowerCase()) ||
-                video.channelTitle.toLowerCase().includes(search.toLowerCase())
-              )
-              .map((video, index) => (
-                <CardWrapper key={video.id} delay={index * 0.05}>
-                  <button onClick={() => handleVideoClick(video)} className="w-full text-left cursor-pointer">
-                    <div className="relative aspect-video">
-                      <img
-                        src={video.thumbnail || "/placeholder.svg"}
-                        alt={video.title}
-                        className="w-full h-full object-cover rounded-t-lg"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-t-lg" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
-                          <Play className="w-7 h-7 text-emerald fill-emerald ml-1" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded-lg text-xs text-white">
-                        {video.duration}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold line-clamp-2 mb-2">{video.title}</h3>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{video.viewCount} views</span>
-                        <span>{video.channelTitle}</span>
-                      </div>
-                    </div>
-                  </button>
-                </CardWrapper>
-              ))}
-          </div>
-        )}
-
-        {displayVideos.length === 0 && !showLoading && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              {search ? 'No videos found matching your search.' : 'No videos available at the moment.'}
-            </p>
-          </div>
-        )}
-
-        {!isEmpty && hasMoreData && displayVideos.length > 0 && (
-          <div ref={setObserverTarget} className="flex justify-center mt-8 py-8">
-            {showLoadMoreLoading && (
-              <>
-                <Loader2 className="w-6 h-6 animate-spin text-emerald" />
-                <span className="ml-2 text-muted-foreground">Loading more videos...</span>
-              </>
-            )}
           </div>
         )}
       </div>
 
-      <VideoModal
-        isOpen={!!selectedVideo}
-        onClose={() => {
-          setSelectedVideo(null)
-          const newUrl = new URL(window.location.href)
-          newUrl.searchParams.delete('video')
-          window.history.replaceState({}, '', newUrl.toString())
-        }}
-        videoId={selectedVideo?.id}
-        title={selectedVideo?.title}
-        description={selectedVideo?.description}
-        playlistId="PLnfYS3rBXoKSDiGuqF_UIDfItqyw"
-      />
+      {selectedVideo && (
+        <VideoModal
+          isOpen={true}
+          onClose={() => {
+            // suppress re-opening from URL while we remove the param
+            suppressOpenRef.current = true
+            router.replace('/videos')
+            setSelectedVideo(null)
+          }}
+          videoId={selectedVideo.id}
+          title={selectedVideo.title}
+          description={selectedVideo.description}
+          playlistId=""
+        />
+      )}
     </>
   )
+}
+
+// Helper functions
+const formatViewCount = (count: string) => {
+  const num = parseInt(count)
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`
+  }
+  return num.toString()
+}
+
+const formatPublishedDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now.getTime() - date.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 1) return "1 day ago"
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+  return `${Math.floor(diffDays / 365)} years ago`
 }

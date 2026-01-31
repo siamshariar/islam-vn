@@ -6,11 +6,16 @@ import { motion } from "framer-motion"
 import { BookOpen, Download, ChevronLeft, User, Languages, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { books } from "@/lib/books"
+import { nonMuslimBooks } from "@/lib/non-muslim-books"
 
 export default function BookDetailPage() {
   const params = useParams()
   const id = params.id as string
-  const book = books.find((b) => b.id === id)
+  const book = books.find((b) => b.id === id) || nonMuslimBooks.find((b) => b.id === id)
+
+  // Type guard to check if book has translator property
+  const hasTranslator = (book: any): book is typeof books[0] => 'translator' in book
+  const hasDetailUrl = (book: any): book is typeof nonMuslimBooks[0] => 'detailUrl' in book
 
   if (!book) {
     return (
@@ -103,7 +108,7 @@ export default function BookDetailPage() {
                 <Languages className="w-5 h-5 text-emerald" />
                 <div>
                   <p className="text-sm text-muted-foreground">Translator</p>
-                  <p className="font-semibold">{book.translator}</p>
+                  <p className="font-semibold">{hasTranslator(book) ? book.translator : 'N/A'}</p>
                 </div>
               </div>
               <div className="h-px bg-border" />
@@ -126,27 +131,42 @@ export default function BookDetailPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                size="lg"
-                className="flex-1 rounded-xl bg-emerald hover:bg-emerald/90 text-white"
-                asChild
-              >
-                <a href={book.pdfUrl} target="_blank" rel="noopener noreferrer">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  Read Now (PDF)
-                </a>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex-1 rounded-xl border-emerald text-emerald hover:bg-emerald/10 bg-transparent"
-                asChild
-              >
-                <a href={book.pdfUrl} download>
-                  <Download className="w-5 h-5 mr-2" />
-                  Download
-                </a>
-              </Button>
+              {book.pdfUrl ? (
+                <>
+                  <Button
+                    size="lg"
+                    className="flex-1 rounded-xl bg-emerald hover:bg-emerald/90 text-white"
+                    asChild
+                  >
+                    <a href={book.pdfUrl} target="_blank" rel="noopener noreferrer">
+                      <BookOpen className="w-5 h-5 mr-2" />
+                      Read Now (PDF)
+                    </a>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1 rounded-xl border-emerald text-emerald hover:bg-emerald/10 bg-transparent"
+                    asChild
+                  >
+                    <a href={book.pdfUrl} download>
+                      <Download className="w-5 h-5 mr-2" />
+                      Download
+                    </a>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="lg"
+                  className="w-full rounded-xl bg-emerald hover:bg-emerald/90 text-white"
+                  asChild
+                >
+                  <a href={hasDetailUrl(book) ? book.detailUrl : '#'} target="_blank" rel="noopener noreferrer">
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    View Details
+                  </a>
+                </Button>
+              )}
             </div>
 
             {/* About Section */}

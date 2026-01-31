@@ -2,12 +2,13 @@
 
 import type React from "react"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, UserPlus, Users, Play, FileText, Sparkles } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
+import VideoModalHome from "@/components/modal/VideoModalHome"
 
 interface ContentCard {
   id: string
@@ -38,30 +39,32 @@ const newMuslimContent: ContentCard[] = [
 
 const nonMuslimContent: ContentCard[] = [
   {
+    id: "76vanFKw664",
+    title: "What is Islam? An Introduction",
+    description: "A comprehensive introduction to Islam for beginners",
+    type: "video",
+    thumbnail: `https://img.youtube.com/vi/76vanFKw664/mqdefault.jpg`,
+  },
+  {
+    id: "DdWxCVYAOCk",
+    title: "Who was Prophet Muhammad?",
+    description: "Learn about the life and teachings of Prophet Muhammad (PBUH)",
+    type: "video",
+    thumbnail: `https://img.youtube.com/vi/DdWxCVYAOCk/mqdefault.jpg`,
+  },
+  {
+    id: "1563",
+    title: "The Victory of the Romans and the Lowest Point on Earth",
+    description: "The Quran lays light on the lowest place of earth.",
+    type: "article",
+    thumbnail: "https://de44dj20p4alh.cloudfront.net/articles/The_Victory_of_the_Romans_and_the_Lowest_Point_on_Earth_001.jpg",
+  },
+  {
     id: "1",
-    title: "What is Islam?",
-    description: "An introduction to the religion of peace",
-    type: "video",
-    thumbnail: "/mosque-beautiful.jpg",
-  },
-  {
-    id: "2",
-    title: "Who is Prophet Muhammad?",
-    description: "Learn about the final messenger",
-    type: "video",
-    thumbnail: "/islamic-calligraphy.png",
-  },
-  {
-    id: "3",
-    title: "Common Misconceptions",
-    description: "Clearing up misunderstandings about Islam",
+    title: "The Earth's Atmosphere",
+    description: "Modern science has discovered facts about the atmosphere mentioned in the Quran over 1400 years ago.",
     type: "article",
-  },
-  {
-    id: "4",
-    title: "Islam and Science",
-    description: "Discovering the harmony between faith and knowledge",
-    type: "article",
+    thumbnail: "https://de44dj20p4alh.cloudfront.net/articles/The_Earth_s_Atmosphere_001.jpg",
   },
 ]
 
@@ -72,9 +75,10 @@ interface SegmentProps {
   content: ContentCard[]
   href: string
   accentColor: "emerald" | "gold"
+  onVideoClick?: (videoId: string, title: string, description: string) => void
 }
 
-function Segment({ title, description, icon: Icon, content, href, accentColor }: SegmentProps) {
+function Segment({ title, description, icon: Icon, content, href, accentColor, onVideoClick }: SegmentProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scroll = (direction: "left" | "right") => {
@@ -132,33 +136,60 @@ function Segment({ title, description, icon: Icon, content, href, accentColor }:
           <CardWrapper key={item.id} className="flex-shrink-0 w-[280px] snap-start" delay={index * 0.1}>
             {item.type === "video" ? (
               <>
-                <div className="relative aspect-video">
-                  <img
-                    src={item.thumbnail || "/placeholder.svg"}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-                      <Play className="w-5 h-5 text-emerald fill-emerald" />
+                <button
+                  onClick={() => onVideoClick?.(item.id, item.title, item.description)}
+                  className="w-full text-left cursor-pointer"
+                >
+                  <div className="relative aspect-video">
+                    <img
+                      src={item.thumbnail || "/placeholder.svg"}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                        <Play className="w-5 h-5 text-emerald fill-emerald" />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold mb-1 line-clamp-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-1 line-clamp-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                  </div>
+                </button>
               </>
             ) : (
-              <div className="p-4">
-                <div
-                  className={`w-10 h-10 rounded-xl ${accentColor === "emerald" ? "bg-emerald/10" : "bg-gold/10"} flex items-center justify-center mb-3`}
-                >
-                  <FileText className={`w-5 h-5 ${accentColor === "emerald" ? "text-emerald" : "text-gold"}`} />
-                </div>
-                <h3 className="font-semibold mb-1">{item.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-              </div>
+              <Link href={href} className="block">
+                {item.thumbnail ? (
+                  <>
+                    <div className="relative aspect-video">
+                      <img
+                        src={item.thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-cover rounded-t-lg"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-t-lg" />
+                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/70 rounded-lg text-xs text-white">
+                        Article
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold line-clamp-2 mb-2">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4">
+                    <div
+                      className={`w-10 h-10 rounded-xl ${accentColor === "emerald" ? "bg-emerald/10" : "bg-gold/10"} flex items-center justify-center mb-3`}
+                    >
+                      <FileText className={`w-5 h-5 ${accentColor === "emerald" ? "text-emerald" : "text-gold"}`} />
+                    </div>
+                    <h3 className="font-semibold mb-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                  </div>
+                )}
+              </Link>
             )}
           </CardWrapper>
         ))}
@@ -178,24 +209,74 @@ function Segment({ title, description, icon: Icon, content, href, accentColor }:
 }
 
 export function SegmentSection() {
+  const [selectedVideo, setSelectedVideo] = useState<{
+    id: string;
+    title: string;
+    description: string;
+  } | null>(null)
+
+  // Handle URL params for modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const videoId = urlParams.get('video')
+    if (videoId) {
+      // Find the video in nonMuslimContent
+      const video = nonMuslimContent.find(v => v.id === videoId)
+      if (video && video.type === 'video') {
+        setSelectedVideo({ id: video.id, title: video.title, description: video.description })
+      }
+    } else {
+      setSelectedVideo(null)
+    }
+  }, [])
+
+  const handleVideoClick = (videoId: string, title: string, description: string) => {
+    setSelectedVideo({ id: videoId, title, description })
+    // Update URL with video ID
+    const newUrl = new URL(window.location.href)
+    newUrl.searchParams.set('video', videoId)
+    window.history.replaceState({}, '', newUrl.toString())
+  }
+
   return (
-    <div className="py-8">
-      <Segment
-        title="For New Muslims"
-        description="Start your beautiful journey with Islam"
-        icon={UserPlus}
-        content={newMuslimContent}
-        href="/new-muslim"
-        accentColor="emerald"
-      />
-      <Segment
-        title="For Non-Muslims"
-        description="Explore and understand Islam"
-        icon={Users}
-        content={nonMuslimContent}
-        href="/non-muslim"
-        accentColor="gold"
-      />
-    </div>
+    <>
+      <div className="py-8">
+        <Segment
+          title="For New Muslims"
+          description="Start your beautiful journey with Islam"
+          icon={UserPlus}
+          content={newMuslimContent}
+          href="/new-muslim"
+          accentColor="emerald"
+          onVideoClick={handleVideoClick}
+        />
+        <Segment
+          title="For Non-Muslims"
+          description="Explore and understand Islam"
+          icon={Users}
+          content={nonMuslimContent}
+          href="/non-muslim"
+          accentColor="gold"
+          onVideoClick={handleVideoClick}
+        />
+      </div>
+
+      {selectedVideo && (
+        <VideoModalHome
+          isOpen={true}
+          onClose={() => {
+            setSelectedVideo(null)
+            // Remove video param from URL
+            const newUrl = new URL(window.location.href)
+            newUrl.searchParams.delete('video')
+            window.history.replaceState({}, '', newUrl.toString())
+          }}
+          videoId={selectedVideo.id}
+          title={selectedVideo.title}
+          description={selectedVideo.description}
+          playlistId="PLnfYS3rBXoKSDiGuqF_UIDfItqyw"
+        />
+      )}
+    </>
   )
 }

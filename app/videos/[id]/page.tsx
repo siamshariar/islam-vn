@@ -132,13 +132,19 @@ export async function generateStaticParams() {
   }))
 }
 
-export default async function VideoDetailPage({ params }: { params: { id: string } }) {
+export default async function VideoDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { [key: string]: string | string[] | undefined } }) {
   const video = await getVideoById(params.id)
 
   if (!video) {
     redirect('/videos')
   }
 
-  // Redirect to list page with modal param for better UX
-  redirect(`/videos?video=${params.id}`)
+  // Preserve incoming `q` (search) param when redirecting so
+  // `/videos?video=ID&q=term` opens the modal and keeps search.
+  const qParam = searchParams?.q
+  const qValue = Array.isArray(qParam) ? qParam[0] : qParam
+  const base = `/videos?video=${encodeURIComponent(params.id)}`
+  const redirectUrl = qValue ? `${base}&q=${encodeURIComponent(qValue)}` : base
+
+  redirect(redirectUrl)
 }

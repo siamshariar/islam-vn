@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { /* no hooks needed here */ } from 'react';
 import styles from './Video.module.css';
 import shareStyles from '../share.module.scss';
 import { server } from '../../lib/config';
@@ -6,21 +6,10 @@ import Share from '../share';
 import Meta from '../meta';
 import { generateVParam } from '../../lib/utils';
 
-export default function VideoModal({ isOpen, onClose, videoId, title, description, playlistId }) {
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'auto';
-        }
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
-    }, [isOpen]);
-
-    if (!isOpen) return null;
-
-    const videoUrl = `/videos/${videoId}`;
+export default function VideoModal({ isOpen, onClose, videoId, title, description, playlistId, baseUrl = '/videos/' }) {
+    // No side-effects in this component; history and body scroll
+    // are handled by the parent to avoid useEffect here.
+    const videoUrl = baseUrl === '/videos/' ? `${baseUrl}${videoId}` : `/non-muslim/video?v=${videoId}`;
 
     return (
         <>

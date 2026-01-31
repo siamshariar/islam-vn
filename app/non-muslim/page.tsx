@@ -1,47 +1,109 @@
 "use client"
 
-import { useState } from "react"
-import { Play, FileText, HelpCircle, Lightbulb, ChevronRight } from "lucide-react"
+import { useState, useRef } from "react"
+import Link from "next/link"
+import { Play, FileText, HelpCircle, Lightbulb, ChevronRight, BookOpen } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
-import { MediaModal } from "@/components/ui/media-modal"
 import { motion } from "framer-motion"
+import { nonMuslimArticles } from "@/lib/non-muslim-articles"
+import { nonMuslimBooks } from "@/lib/non-muslim-books"
+import { nonMuslimQA } from "@/lib/non-muslim-qa"
+import { BookCover } from "../books/client"
+import VideoModalHome from "@/components/modal/VideoModalHome"
 
 const resources = {
   videos: [
-    { id: "dQw4w9WgXcQ", title: "What is Islam? An Introduction", thumbnail: "/placeholder.svg?height=200&width=350" },
-    { id: "dQw4w9WgXcQ", title: "Who was Prophet Muhammad?", thumbnail: "/placeholder.svg?height=200&width=350" },
     {
-      id: "dQw4w9WgXcQ",
-      title: "Islam and Science - Harmony of Knowledge",
-      thumbnail: "/placeholder.svg?height=200&width=350",
+      id: "76vanFKw664",
+      title: "What is Islam? An Introduction",
+      thumbnail: `https://img.youtube.com/vi/76vanFKw664/mqdefault.jpg`,
+      description: "A comprehensive introduction to Islam for beginners"
     },
-    { id: "dQw4w9WgXcQ", title: "Women in Islam - Truth vs Myths", thumbnail: "/placeholder.svg?height=200&width=350" },
+    {
+      id: "DdWxCVYAOCk",
+      title: "Who was Prophet Muhammad?",
+      thumbnail: `https://img.youtube.com/vi/DdWxCVYAOCk/mqdefault.jpg`,
+      description: "Learn about the life and teachings of Prophet Muhammad (PBUH)"
+    },
+    {
+      id: "W_1RSVo3dLg",
+      title: "Islam and Science - Harmony of Knowledge",
+      thumbnail: `https://img.youtube.com/vi/W_1RSVo3dLg/mqdefault.jpg`,
+      description: "Discover the scientific miracles in the Quran and Islamic teachings"
+    },
+    {
+      id: "Eh6BTRDLLMA",
+      title: "Women in Islam - Truth vs Myths",
+      thumbnail: `https://img.youtube.com/vi/Eh6BTRDLLMA/mqdefault.jpg`,
+      description: "Understanding the true status and rights of women in Islam"
+    },
   ],
-  articles: [
-    { id: "1", title: "5 Common Misconceptions About Islam", readTime: "8 min" },
-    { id: "2", title: "The Quran - What is it Really About?", readTime: "10 min" },
-    { id: "3", title: "Islam's Message of Peace and Mercy", readTime: "6 min" },
-    { id: "4", title: "Muslims in Vietnam - A Brief History", readTime: "7 min" },
-  ],
+  articles: nonMuslimArticles.slice(0, 4).map(article => ({
+    id: article.id,
+    title: article.title,
+    readTime: article.readTime,
+    excerpt: article.excerpt,
+    category: article.category
+  })),
+  books: nonMuslimBooks.slice(0, 4).map(book => ({
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    description: book.description,
+    thumbnail: book.thumbnail,
+    color: book.color
+  }))
 }
 
-const faqs = [
-  {
-    q: "What do Muslims believe?",
-    a: "Muslims believe in one God (Allah), angels, prophets, holy books, the Day of Judgment, and divine decree.",
-  },
-  {
-    q: "Is Islam a peaceful religion?",
-    a: "Yes, Islam means 'peace' and 'submission to God.' The Quran teaches peace, justice, and compassion.",
-  },
-  {
-    q: "What is the Quran?",
-    a: "The Quran is the holy book of Islam, believed to be the word of God revealed to Prophet Muhammad.",
-  },
-]
+const faqs = nonMuslimQA.slice(0, 6).map(qa => ({
+  q: qa.question,
+  a: qa.answer
+}))
 
 export default function NonMuslimPage() {
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
+  const [selectedVideo, setSelectedVideo] = useState<{id: string, title: string, description: string} | null>(null)
+  const prevUrlRef = useRef<string | null>(null)
+
+  const openVideo = (video: {id: string, title: string, description: string}) => {
+    // store previous URL
+    try {
+      prevUrlRef.current = window.location.pathname + window.location.search
+    } catch (e) {
+      prevUrlRef.current = null
+    }
+
+    // push new modal URL
+    try {
+      window.history.pushState({ modal: true, videoId: video.id }, '', `/non-muslim/video?v=${video.id}`)
+    } catch (e) {
+      // ignore
+    }
+
+    // lock body scroll
+    try { document.body.style.overflow = 'hidden' } catch (e) {}
+
+    // ensure back button closes modal
+    try { window.onpopstate = () => { handleClose() } } catch (e) {}
+
+    setSelectedVideo(video)
+  }
+
+  const handleClose = () => {
+    // restore body scroll
+    try { document.body.style.overflow = 'auto' } catch (e) {}
+
+    // restore previous URL
+    const prev = prevUrlRef.current
+    try {
+      if (prev) window.history.replaceState({}, '', prev)
+      else window.history.replaceState({}, '', '/')
+    } catch (e) {
+      // ignore
+    }
+
+    setSelectedVideo(null)
+    try { window.onpopstate = null } catch (e) {}
+  }
 
   return (
     <>
@@ -87,22 +149,32 @@ export default function NonMuslimPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {resources.videos.map((video, index) => (
-              <CardWrapper key={video.id + index} delay={index * 0.05}>
-                <button onClick={() => setSelectedVideo(video.id)} className="w-full text-left">
+              <CardWrapper key={video.id} delay={index * 0.05}>
+                <button onClick={() => openVideo(video)} className="w-full text-left">
                   <div className="relative aspect-video">
                     <img
-                      src={video.thumbnail || "/placeholder.svg"}
+                      src={video.thumbnail}
                       alt={video.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to other quality thumbnails if mqdefault fails
+                        const target = e.target as HTMLImageElement;
+                        if (target.src.includes('mqdefault.jpg')) {
+                          target.src = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
+                        } else if (target.src.includes('hqdefault.jpg')) {
+                          target.src = `https://img.youtube.com/vi/${video.id}/default.jpg`;
+                        }
+                      }}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity rounded-lg">
                       <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
                         <Play className="w-5 h-5 text-gold fill-gold ml-0.5" />
                       </div>
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold line-clamp-2">{video.title}</h3>
+                    <h3 className="font-semibold line-clamp-2 mb-1">{video.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{video.description}</p>
                   </div>
                 </button>
               </CardWrapper>
@@ -111,35 +183,62 @@ export default function NonMuslimPage() {
         </section>
 
         {/* Articles */}
-        <section>
+        <section className="mb-12">
           <h2 className="text-2xl font-bold text-emerald mb-6 flex items-center gap-2">
-            <FileText className="w-6 h-6" /> Learn More
+            <FileText className="w-6 h-6" /> Learn More - Articles
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {resources.articles.map((article, index) => (
               <CardWrapper key={article.id} delay={index * 0.05}>
-                <div className="p-5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6 text-gold" />
+                <Link href={`/articles/${article.id}`} className="block p-5 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-6 h-6 text-gold" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold mb-1 line-clamp-2">{article.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="px-2 py-0.5 bg-muted rounded-full text-xs">{article.category}</span>
+                        <span>•</span>
+                        <span>{article.readTime} read</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{article.title}</h3>
-                    <span className="text-sm text-muted-foreground">{article.readTime} read</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </div>
+                </Link>
+              </CardWrapper>
+            ))}
+          </div>
+        </section>
+
+        {/* Books */}
+        <section>
+          <h2 className="text-2xl font-bold text-emerald mb-6 flex items-center gap-2">
+            <BookOpen className="w-6 h-6" /> Recommended Books
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {resources.books.map((book, index) => (
+              <CardWrapper key={book.id} delay={index * 0.05}>
+                <Link href={`/books/${book.id}`}>
+                  <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
+                </Link>
               </CardWrapper>
             ))}
           </div>
         </section>
       </div>
 
-      <MediaModal
-        isOpen={!!selectedVideo}
-        onClose={() => setSelectedVideo(null)}
-        videoId={selectedVideo || undefined}
-        title="Video"
-      />
+      {selectedVideo && (
+        <VideoModalHome
+          isOpen={true}
+          onClose={handleClose}
+          videoId={selectedVideo.id}
+          title={selectedVideo.title}
+          description={selectedVideo.description}
+          playlistId="PLnfYS3rBXoKSDiGuqF_DUgsfUIDfItqyw"
+          baseUrl="/non-muslim/videos/"
+        />
+      )}
     </>
   )
 }
