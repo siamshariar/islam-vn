@@ -39,12 +39,12 @@ export default function QAClient({ qaItems }: { qaItems: QAItem[] }) {
     e.preventDefault()
     const query = inputValue.trim()
     if (query) {
-      setSearch(query)
-      // Update URL with search parameter on the same page
-      router.replace(`/qa?q=${encodeURIComponent(query)}`)
+      // Redirect to search page with search parameter
+      router.push(`/search/qa?q=${encodeURIComponent(query)}`)
     } else {
+      // Clear search and stay on qa page
       setSearch("")
-      // Clear search
+      setInputValue("")
       router.replace('/qa')
     }
   }
@@ -86,7 +86,15 @@ export default function QAClient({ qaItems }: { qaItems: QAItem[] }) {
               <Input
                 placeholder="Search questions and answers..."
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setInputValue(value)
+                  // Clear search when input becomes empty
+                  if (!value.trim()) {
+                    setSearch("")
+                    router.replace('/qa')
+                  }
+                }}
                 className="pl-9 pr-9 rounded-xl"
               />
               {inputValue && (

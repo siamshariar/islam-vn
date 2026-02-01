@@ -82,12 +82,12 @@ export default function BooksClient({ books }: { books: Book[] }) {
     e.preventDefault()
     const query = inputValue.trim()
     if (query) {
-      setSearch(query)
-      // Update URL with search parameter on the same page
-      router.replace(`/books?q=${encodeURIComponent(query)}`)
+      // Redirect to search page with search parameter
+      router.push(`/search/books?q=${encodeURIComponent(query)}`)
     } else {
+      // Clear search and stay on books page
       setSearch("")
-      // Clear search
+      setInputValue("")
       router.replace('/books')
     }
   }
@@ -119,7 +119,15 @@ export default function BooksClient({ books }: { books: Book[] }) {
             <Input
               placeholder="Search books..."
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setInputValue(value)
+                // Clear search when input becomes empty
+                if (!value.trim()) {
+                  setSearch("")
+                  router.replace('/books')
+                }
+              }}
               className="pl-9 pr-9 rounded-xl"
             />
             {inputValue && (

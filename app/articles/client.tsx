@@ -34,12 +34,12 @@ export default function ArticlesClient({ articles }: { articles: Article[] }) {
     e.preventDefault()
     const query = inputValue.trim()
     if (query) {
-      setSearch(query)
-      // Update URL with search parameter on the same page
-      router.replace(`/articles?q=${encodeURIComponent(query)}`)
+      // Redirect to search page with search parameter
+      router.push(`/search/articles?q=${encodeURIComponent(query)}`)
     } else {
+      // Clear search and stay on articles page
       setSearch("")
-      // Clear search
+      setInputValue("")
       router.replace('/articles')
     }
   }
@@ -74,7 +74,15 @@ export default function ArticlesClient({ articles }: { articles: Article[] }) {
             <Input
               placeholder="Search articles..."
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setInputValue(value)
+                // Clear search when input becomes empty
+                if (!value.trim()) {
+                  setSearch("")
+                  router.replace('/articles')
+                }
+              }}
               className="pl-9 pr-9 rounded-xl"
             />
             {inputValue && (
