@@ -7,28 +7,45 @@ import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
-import { qaItems } from "@/lib/qa"
 
-export default function QAClient() {
+type QAItem = {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+}
+
+export default function QAClient({ qaItems }: { qaItems: QAItem[] }) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(searchParams.get('q') || "")
+  const [inputValue, setInputValue] = useState(searchParams.get('q') || "")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  // Redirect to search page if there's a search query in URL
+  // Set search and input from URL on mount
   useEffect(() => {
     const query = searchParams.get('q')
     if (query) {
-      router.replace(`/search/qa?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      setInputValue(query)
+    } else {
+      setSearch("")
+      setInputValue("")
     }
-  }, [searchParams, router])
+  }, [searchParams])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    const query = search.trim()
+    const query = inputValue.trim()
     if (query) {
-      router.push(`/search/qa?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      // Update URL with search parameter on the same page
+      router.replace(`/qa?q=${encodeURIComponent(query)}`)
+    } else {
+      setSearch("")
+      // Clear search
+      router.replace('/qa')
     }
   }
 
@@ -41,7 +58,10 @@ export default function QAClient() {
 
   const filteredQA = qaItems.filter(
     (item: any) =>
-      (selectedCategory === "All" || item.category === selectedCategory),
+      (selectedCategory === "All" || item.category === selectedCategory) &&
+      (!search || 
+        item.question.toLowerCase().includes(search.toLowerCase()) ||
+        item.answer.toLowerCase().includes(search.toLowerCase()))
   )
 
   const displayQA = filteredQA
@@ -54,7 +74,10 @@ export default function QAClient() {
               Questions & Answers
             </h1>
             <p className="text-muted-foreground">
-              Find answers to common questions about Islam
+              {search
+                ? `Found ${filteredQA.length} Q&A${filteredQA.length !== 1 ? 's' : ''} for "${search}"`
+                : "Find answers to common questions about Islam"
+              }
             </p>
           </div>
           <div className="relative w-full sm:w-72">
@@ -62,14 +85,18 @@ export default function QAClient() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search questions and answers..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 className="pl-9 pr-9 rounded-xl"
               />
-              {search && (
+              {inputValue && (
                 <button
                   type="button"
-                  onClick={() => setSearch("")}
+                  onClick={() => {
+                    setInputValue("")
+                    setSearch("")
+                    router.replace('/qa')
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground"
                 >
                   <X className="w-4 h-4" />

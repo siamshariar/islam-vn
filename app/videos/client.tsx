@@ -72,92 +72,8 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   // Get videos from API data
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
 
-  // Fallback videos for when API completely fails
-  const fallbackVideos: YouTubeVideo[] = [
-    {
-      id: "dQw4w9WgXcQ",
-      title: "Understanding Tawheed - The Oneness of Allah",
-      description: "Learn about the fundamental concept of Tawheed in Islam",
-      thumbnail: "/islamic-lecture-mosque.jpg",
-      duration: "45:30",
-      viewCount: "12K",
-      publishedAt: "2024-01-15T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "9bZkp7q19f0",
-      title: "The Beauty of Salah - Your Connection to Allah",
-      description: "Discover the spiritual benefits of prayer in Islam",
-      thumbnail: "/muslim-prayer-dawn.jpg",
-      duration: "32:15",
-      viewCount: "8.5K",
-      publishedAt: "2024-01-10T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "JGwWNGJdvx8",
-      title: "Ramadan Reflections - The Month of Mercy",
-      description: "Explore the spiritual significance of Ramadan",
-      thumbnail: "/ramadan-mosque-night.jpg",
-      duration: "28:45",
-      viewCount: "15K",
-      publishedAt: "2024-01-05T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "hTWKbfoikeg",
-      title: "The Life of Prophet Muhammad (PBUH)",
-      description: "A comprehensive overview of the Prophet's life",
-      thumbnail: "/prophet-muhammad-biography.jpg",
-      duration: "67:20",
-      viewCount: "25K",
-      publishedAt: "2024-01-01T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "N9Q2I4fTxpM",
-      title: "Islamic Finance - Interest-Free Banking",
-      description: "Understanding the principles of Islamic finance",
-      thumbnail: "/islamic-finance-money.jpg",
-      duration: "41:10",
-      viewCount: "9K",
-      publishedAt: "2023-12-28T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "2Vv-BfVoq4g",
-      title: "Women in Islam - Rights and Responsibilities",
-      description: "Exploring the status of women in Islamic teachings",
-      thumbnail: "/muslim-women-education.jpg",
-      duration: "38:55",
-      viewCount: "18K",
-      publishedAt: "2023-12-25T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "eIho2S0ZahI",
-      title: "The Quran - A Source of Guidance",
-      description: "Understanding the miraculous nature of the Quran",
-      thumbnail: "/holy-quran-scripture.jpg",
-      duration: "52:30",
-      viewCount: "22K",
-      publishedAt: "2023-12-20T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "dQw4w9WgXcQ",
-      title: "Islamic Art and Architecture",
-      description: "Appreciating the beauty of Islamic civilization",
-      thumbnail: "/islamic-art-architecture.jpg",
-      duration: "35:40",
-      viewCount: "11K",
-      publishedAt: "2023-12-15T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    }
-  ]
-
-  // Combine API videos with fallback videos
-  const videos = apiVideos.length > 0 ? apiVideos : fallbackVideos
+  // Combine API videos with initial videos - always show videos immediately
+  const videos = apiVideos.length > 0 ? apiVideos : initialVideos
 
   // Handle video param to open modal
   useEffect(() => {
@@ -183,7 +99,7 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
     if (!selectedVideo && searchParams.get('video')) {
       const q = searchParams.get('q')
       if (q) {
-        router.replace(`/search/videos?q=${encodeURIComponent(q)}`)
+        router.replace(`/videos?q=${encodeURIComponent(q)}`)
       } else {
         router.replace('/videos')
       }
@@ -194,7 +110,6 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   const hasMoreData = data && data[data.length - 1]?.hasMore !== false
   const isLoadingMore = isValidating && size > 1
   const isLoadingMoreFromApi = isValidating && size === 1
-  const showLoading = !data && !error
 
   // Load more function for manual loading
   const loadMore = useCallback(() => {
@@ -202,17 +117,6 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
       setSize(size + 1)
     }
   }, [hasMoreData, isLoadingMore, isLoadingMoreFromApi, setSize, size])
-
-  if (showLoading) {
-    return (
-      <div className="px-4 lg:px-8 py-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald" />
-          <span className="ml-2 text-muted-foreground">Loading videos...</span>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>

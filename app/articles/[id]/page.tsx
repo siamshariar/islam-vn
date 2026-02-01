@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
@@ -8,6 +8,7 @@ import { articles } from "@/lib/articles"
 
 export default function ArticleDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
   const article = articles.find((a) => a.id === id)
 
@@ -35,13 +36,13 @@ export default function ArticleDetailPage() {
     >
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
-          <Link
-            href="/articles"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-emerald transition-colors mb-8"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Articles
-          </Link>
+          </button>
 
           {/* Article Header */}
           <div

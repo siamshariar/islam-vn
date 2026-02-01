@@ -7,7 +7,20 @@ import { Search, BookOpen, Download, X } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { books } from "@/lib/books"
+
+type Book = {
+  id: string;
+  title: string;
+  author: string;
+  translator: string;
+  category: string;
+  pages: number;
+  color: string;
+  thumbnail: string | null;
+  description: string;
+  url: string;
+  pdfUrl: string;
+}
 
 export function BookCover({ title, author, color, thumbnail }: { title: string; author: string; color: string; thumbnail?: string | null }) {
   const isActualThumbnail = thumbnail && thumbnail !== "https://islamhouse.com/logo_IslamHouse.jpg";
@@ -47,26 +60,44 @@ export function BookCover({ title, author, color, thumbnail }: { title: string; 
   )
 }
 
-export default function BooksClient() {
+export default function BooksClient({ books }: { books: Book[] }) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(searchParams.get('q') || "")
+  const [inputValue, setInputValue] = useState(searchParams.get('q') || "")
 
-  // Redirect to search page if there's a search query in URL
+  // Set search and input from URL on mount
   useEffect(() => {
     const query = searchParams.get('q')
     if (query) {
-      router.replace(`/search/books?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      setInputValue(query)
+    } else {
+      setSearch("")
+      setInputValue("")
     }
-  }, [searchParams, router])
+  }, [searchParams])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    const query = search.trim()
+    const query = inputValue.trim()
     if (query) {
-      router.push(`/search/books?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      // Update URL with search parameter on the same page
+      router.replace(`/books?q=${encodeURIComponent(query)}`)
+    } else {
+      setSearch("")
+      // Clear search
+      router.replace('/books')
     }
   }
+
+  const filteredBooks = books.filter(book => 
+    !search || 
+    book.title.toLowerCase().includes(search.toLowerCase()) ||
+    book.author.toLowerCase().includes(search.toLowerCase()) ||
+    book.description.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div className="px-4 lg:px-8 py-8">
@@ -76,7 +107,10 @@ export default function BooksClient() {
             Books
           </h1>
           <p className="text-muted-foreground">
-            Explore our collection of Islamic literature
+            {search
+              ? `Found ${filteredBooks.length} book${filteredBooks.length !== 1 ? 's' : ''} for "${search}"`
+              : "Explore our collection of Islamic literature"
+            }
           </p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -84,14 +118,18 @@ export default function BooksClient() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search books..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               className="pl-9 pr-9 rounded-xl"
             />
-            {search && (
+            {inputValue && (
               <button
                 type="button"
-                onClick={() => setSearch("")}
+                onClick={() => {
+                  setInputValue("")
+                  setSearch("")
+                  router.replace('/books')
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
@@ -102,7 +140,7 @@ export default function BooksClient() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {books.map((book, index) => (
+        {filteredBooks.map((book, index) => (
           <CardWrapper key={book.id} delay={index * 0.05}>
             <Link href={`/books/${book.id}`}>
               <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />

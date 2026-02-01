@@ -7,35 +7,51 @@ import { Search, Clock, ChevronRight, Tag, X } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { articles } from "@/lib/articles"
+import { Article } from "@/lib/articles"
 
 const categories = ["All", "Evidence Islam is Truth", "The Benefits of Islam", "Beliefs of Islam", "How to Convert to Islam", "Worship and Practice", "The Hereafter", "Stories of New Muslims", "Comparative Religion", "The Holy Quran", "The Prophet Muhammad", "Current Issues", "Islamic History", "Systems in Islam", "General"]
 
-export default function ArticlesClient() {
+export default function ArticlesClient({ articles }: { articles: Article[] }) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(searchParams.get('q') || "")
+  const [inputValue, setInputValue] = useState(searchParams.get('q') || "")
   const [selectedCategory, setSelectedCategory] = useState("All")
 
-  // Redirect to search page if there's a search query in URL
+  // Set search and input from URL on mount
   useEffect(() => {
     const query = searchParams.get('q')
     if (query) {
-      router.replace(`/search/articles?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      setInputValue(query)
+    } else {
+      setSearch("")
+      setInputValue("")
     }
-  }, [searchParams, router])
+  }, [searchParams])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    const query = search.trim()
+    const query = inputValue.trim()
     if (query) {
-      router.push(`/search/articles?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      // Update URL with search parameter on the same page
+      router.replace(`/articles?q=${encodeURIComponent(query)}`)
+    } else {
+      setSearch("")
+      // Clear search
+      router.replace('/articles')
     }
   }
 
-  const filteredArticles = selectedCategory === "All"
-    ? articles
-    : articles.filter(article => article.category === selectedCategory)
+  const filteredArticles = articles
+    .filter(article => selectedCategory === "All" || article.category === selectedCategory)
+    .filter(article => 
+      !search || 
+      article.title.toLowerCase().includes(search.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(search.toLowerCase()) ||
+      article.content.toLowerCase().includes(search.toLowerCase())
+    )
 
   return (
     <div className="px-4 lg:px-8 py-8">
@@ -45,7 +61,10 @@ export default function ArticlesClient() {
             Articles
           </h1>
           <p className="text-muted-foreground">
-            Read and learn from our collection of Islamic articles
+            {search
+              ? `Found ${filteredArticles.length} article${filteredArticles.length !== 1 ? 's' : ''} for "${search}"`
+              : "Read and learn from our collection of Islamic articles"
+            }
           </p>
         </div>
 
@@ -54,14 +73,18 @@ export default function ArticlesClient() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search articles..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               className="pl-9 pr-9 rounded-xl"
             />
-            {search && (
+            {inputValue && (
               <button
                 type="button"
-                onClick={() => setSearch("")}
+                onClick={() => {
+                  setInputValue("")
+                  setSearch("")
+                  router.replace('/articles')
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />

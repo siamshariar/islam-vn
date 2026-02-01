@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { BookOpen, Download, ChevronLeft, User, Languages, Tag } from "lucide-react"
@@ -10,6 +10,7 @@ import { nonMuslimBooks } from "@/lib/non-muslim-books"
 
 export default function BookDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
   const book = books.find((b) => b.id === id) || nonMuslimBooks.find((b) => b.id === id)
 
@@ -40,13 +41,13 @@ export default function BookDetailPage() {
       className="px-4 lg:px-8 py-8"
     >
         {/* Back button */}
-        <Link
-          href="/books"
+        <button
+          onClick={() => router.back()}
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-emerald transition-colors mb-6"
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Books
-        </Link>
+        </button>
 
         <div className="grid lg:grid-cols-[350px_1fr] gap-8 lg:gap-12">
           <motion.div
