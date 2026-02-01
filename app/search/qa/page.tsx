@@ -4,7 +4,7 @@ import SearchQAClient from "./client"
 
 export default function SearchQAPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={null}>
       <MainLayout>
         <SearchQAClient />
       </MainLayout>

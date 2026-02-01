@@ -4,7 +4,7 @@ import SearchVideosClient from "./client"
 
 export default function SearchVideosPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={null}>
       <MainLayout>
         <SearchVideosClient />
       </MainLayout>

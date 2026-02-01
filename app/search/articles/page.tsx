@@ -4,7 +4,7 @@ import SearchArticlesClient from "./client"
 
 export default function SearchArticlesPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={null}>
       <MainLayout>
         <SearchArticlesClient />
       </MainLayout>
