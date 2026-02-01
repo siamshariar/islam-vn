@@ -20,7 +20,7 @@ export default function ArticleDetailPage() {
           <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
           <Link
             href="/articles"
-            className="inline-flex items-center gap-2 text-emerald hover:text-emerald/80 transition-colors"
+            className="inline-flex items-center gap-2 text-emerald hover:text-emerald/80 transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Articles
@@ -38,7 +38,7 @@ export default function ArticleDetailPage() {
           {/* Back button */}
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-emerald transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-emerald transition-colors cursor-pointer mb-8"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Articles
