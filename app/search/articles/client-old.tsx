@@ -15,29 +15,55 @@ export default function SearchArticlesClient() {
   const searchParams = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('q') || "")
   const [searchResults, setSearchResults] = useState<any[]>([])
-  const [loading, setLoading] = useState(!!searchParams.get('q')) // Set loading to true if there's a query
+  const [initialLoad, setInitialLoad] = useState(true)
+
+  // Immediate search on mount if query exists
+  useEffect(() => {
+    const query = searchParams.get('q')
+    if (query && initialLoad) {
+      setSearch(query)
+      performSearch(query)
+      setInitialLoad(false)
+    }
+  }, [searchParams, initialLoad])
+
+  const performSearch = async (query: string) => {
+    try {
+      const response = await fetch(`/api/search/articles?q=${encodeURIComponent(query)}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSearchResults(data.results || [])
+      } else {
+        // Fallback to client-side search
+        const filtered = articles.filter(
+          (article) =>
+            article.title.toLowerCase().includes(query.toLowerCase()) ||
+            article.content.toLowerCase().includes(query.toLowerCase()) ||
+            article.category.toLowerCase().includes(query.toLowerCase())
+        )
+        setSearchResults(filtered)
+      }
+    } catch (error) {
+      // Fallback to client-side search
+      const filtered = articles.filter(
+        (article) =>
+          article.title.toLowerCase().includes(query.toLowerCase()) ||
+          article.content.toLowerCase().includes(query.toLowerCase()) ||
+          article.category.toLowerCase().includes(query.toLowerCase())
+      )
+      setSearchResults(filtered)
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     const query = search.trim()
     if (query) {
-      setLoading(true)
-      try {
-        const response = await fetch(`/api/search/articles?q=${encodeURIComponent(query)}`)
-        if (response.ok) {
-          const data = await response.json()
-          setSearchResults(data.results || [])
-        } else {
-          // Fallback to client-side search
-          const filtered = articles.filter(
-            (article) =>
-              article.title.toLowerCase().includes(query.toLowerCase()) ||
-              article.content.toLowerCase().includes(query.toLowerCase()) ||
-              article.category.toLowerCase().includes(query.toLowerCase())
-          )
-          setSearchResults(filtered)
-        }
-        // Update URL with search parameter
+      await performSearch(query)
+      // Update URL with search parameter
+      window.history.replaceState({}, '', `/search/articles?q=${encodeURIComponent(query)}`)
+    }
+  }
         window.history.replaceState({}, '', `/search/articles?q=${encodeURIComponent(query)}`)
       } catch (error) {
         // Fallback to client-side search
@@ -135,7 +161,7 @@ export default function SearchArticlesClient() {
               </p>
             </div>
           ) : searchResults.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {searchResults.map((article, index) => (
                 <CardWrapper key={article.id} delay={index * 0.05}>
                   <Link href={`/articles/${article.id}`} className="block h-full">
@@ -155,12 +181,12 @@ export default function SearchArticlesClient() {
 
                     <div className="p-6">
                       {/* Category Badge */}
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-                        <span className="px-3 py-1 bg-emerald/10 text-emerald rounded-full text-xs font-medium self-start sm:self-auto">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-3 py-1 bg-emerald/10 text-emerald rounded-full text-xs font-medium">
                           {article.category}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {article.readTime} read
+                          {article.readTime} min read
                         </span>
                       </div>
 

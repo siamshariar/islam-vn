@@ -7,12 +7,13 @@ import { BookOpen, Download, ChevronLeft, User, Languages, Tag } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { books } from "@/lib/books"
 import { nonMuslimBooks } from "@/lib/non-muslim-books"
+import { newMuslimBooks } from "@/lib/new-muslim-books"
 
 export default function BookDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const book = books.find((b) => b.id === id) || nonMuslimBooks.find((b) => b.id === id)
+  const book = books.find((b) => b.id === id) || nonMuslimBooks.find((b) => b.id === id) || newMuslimBooks.find((b) => b.id === id) || newMuslimBooks.find((b) => b.id === id)
 
   // Type guard to check if book has translator property
   const hasTranslator = (book: any): book is typeof books[0] => 'translator' in book
@@ -105,14 +106,18 @@ export default function BookDetailPage() {
                 </div>
               </div>
               <div className="h-px bg-border" />
-              <div className="flex items-center gap-3 text-foreground">
-                <Languages className="w-5 h-5 text-emerald" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Translator</p>
-                  <p className="font-semibold">{hasTranslator(book) ? book.translator : 'N/A'}</p>
-                </div>
-              </div>
-              <div className="h-px bg-border" />
+              {hasTranslator(book) && (
+                <>
+                  <div className="flex items-center gap-3 text-foreground">
+                    <Languages className="w-5 h-5 text-emerald" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Translator</p>
+                      <p className="font-semibold">{book.translator}</p>
+                    </div>
+                  </div>
+                  <div className="h-px bg-border" />
+                </>
+              )}
               <div className="flex items-center gap-3 text-foreground">
                 <Tag className="w-5 h-5 text-emerald" />
                 <div>

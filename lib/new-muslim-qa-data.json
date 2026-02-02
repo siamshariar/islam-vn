@@ -1,0 +1,56 @@
+[
+  {
+    "id": "nmq001",
+    "question": "What should I do first as a new Muslim?",
+    "answer": "Start by learning the basic beliefs of Islam, how to perform ablution (wudu), and the daily prayers (salah). Connect with a local Muslim community for support.",
+    "category": "Getting Started",
+    "publishedDate": "February 2, 2026",
+    "views": 1250,
+    "helpful": 89
+  },
+  {
+    "id": "nmq002",
+    "question": "How do I learn to pray as a new Muslim?",
+    "answer": "Begin by learning the movements and recitations step by step. Use prayer apps, watch instructional videos, or ask someone at your local mosque to teach you.",
+    "category": "Worship",
+    "publishedDate": "February 2, 2026",
+    "views": 980,
+    "helpful": 156
+  },
+  {
+    "id": "nmq003",
+    "question": "Do I need to learn Arabic as a new Muslim?",
+    "answer": "While learning Arabic is beneficial for understanding the Quran, it's not mandatory. You can start by learning key phrases used in prayer and gradually expand your knowledge.",
+    "category": "Education",
+    "publishedDate": "February 2, 2026",
+    "views": 750,
+    "helpful": 67
+  },
+  {
+    "id": "nmq004",
+    "question": "How can I find Muslim friends and community?",
+    "answer": "Visit your local mosque, join Islamic study groups, attend community events, and use Muslim social apps to connect with believers in your area.",
+    "category": "Community",
+    "publishedDate": "February 2, 2026",
+    "views": 642,
+    "helpful": 92
+  },
+  {
+    "id": "nmq005",
+    "question": "What Islamic books should I read first?",
+    "answer": "Start with an English translation of the Quran, 'The New Muslim's Guide to Islam', and books about the life of Prophet Muhammad (peace be upon him).",
+    "category": "Education",
+    "publishedDate": "February 2, 2026",
+    "views": 534,
+    "helpful": 78
+  },
+  {
+    "id": "nmq006",
+    "question": "How do I handle family and friends who don't understand my conversion?",
+    "answer": "Be patient, lead by example through good character, educate them gradually about Islam, and maintain respectful relationships while staying firm in your faith.",
+    "category": "Lifestyle",
+    "publishedDate": "February 2, 2026",
+    "views": 423,
+    "helpful": 134
+  }
+]

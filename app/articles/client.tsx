@@ -34,12 +34,12 @@ export default function ArticlesClient({ articles }: { articles: Article[] }) {
     e.preventDefault()
     const query = inputValue.trim()
     if (query) {
-      // Redirect to search page with search parameter
-      router.push(`/search/articles?q=${encodeURIComponent(query)}`)
+      setSearch(query)
+      // Update URL with search parameter on the same page
+      router.replace(`/articles?q=${encodeURIComponent(query)}`)
     } else {
-      // Clear search and stay on articles page
       setSearch("")
-      setInputValue("")
+      // Clear search
       router.replace('/articles')
     }
   }
@@ -74,15 +74,7 @@ export default function ArticlesClient({ articles }: { articles: Article[] }) {
             <Input
               placeholder="Search articles..."
               value={inputValue}
-              onChange={(e) => {
-                const value = e.target.value
-                setInputValue(value)
-                // Clear search when input becomes empty
-                if (!value.trim()) {
-                  setSearch("")
-                  router.replace('/articles')
-                }
-              }}
+              onChange={(e) => setInputValue(e.target.value)}
               className="pl-9 pr-9 rounded-xl"
             />
             {inputValue && (
@@ -138,12 +130,12 @@ export default function ArticlesClient({ articles }: { articles: Article[] }) {
 
               <div className="p-6">
                 {/* Category Badge */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex md:flex-col flex-row justify-between gap-2 mb-3">
                   <span className="px-3 py-1 bg-emerald/10 text-emerald rounded-full text-xs font-medium">
                     {article.category}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {article.readTime} min read
+                    {article.readTime}  read
                   </span>
                 </div>
 

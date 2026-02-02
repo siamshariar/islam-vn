@@ -5,12 +5,13 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
 import { articles } from "@/lib/articles"
+import { newMuslimArticles } from "@/lib/new-muslim-articles"
 
 export default function ArticleDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const article = articles.find((a) => a.id === id)
+  const article = articles.find((a) => a.id === id) || newMuslimArticles.find((a) => a.id === id)
 
   if (!article) {
     return (

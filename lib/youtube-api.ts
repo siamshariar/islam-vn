@@ -322,13 +322,12 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
     }
   }
 
-  // If quota was exceeded, return fallback videos immediately
+  // If quota was exceeded or no videos found, return empty array
   if (quotaExceeded || allVideos.length === 0) {
-    console.log('Using fallback videos due to quota/API issues');
-    const fallbackVideos = getFallbackVideos();
-    // Cache the fallback videos with quota exceeded flag for shorter duration
-    apiCache.set(cacheKey, { data: fallbackVideos, timestamp: now, isQuotaExceeded: true });
-    return fallbackVideos;
+    console.log('No videos available due to quota/API issues');
+    // Cache empty array with quota exceeded flag for shorter duration
+    apiCache.set(cacheKey, { data: [], timestamp: now, isQuotaExceeded: true });
+    return [];
   }
 
   // Remove duplicates based on video ID and sort by published date (newest first)
@@ -344,70 +343,4 @@ export async function fetchAllVideos(maxResultsPerSource: number = 5): Promise<Y
   apiCache.set(cacheKey, { data: sortedVideos, timestamp: now, isQuotaExceeded: false });
 
   return sortedVideos;
-}
-
-// Fallback videos when API fails or quota exceeded
-function getFallbackVideos(): YouTubeVideo[] {
-  return [
-    {
-      id: "dQw4w9WgXcQ",
-      title: "Understanding Tawheed - The Oneness of Allah",
-      description: "Learn about the fundamental concept of Tawheed in Islam",
-      thumbnail: "/islamic-lecture-mosque.jpg",
-      duration: "45:30",
-      viewCount: "12K",
-      publishedAt: "2024-01-15T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "9bZkp7q19f0",
-      title: "The Beauty of Salah - Your Connection to Allah",
-      description: "Discover the spiritual benefits of prayer in Islam",
-      thumbnail: "/muslim-prayer-dawn.jpg",
-      duration: "32:15",
-      viewCount: "8.5K",
-      publishedAt: "2024-01-10T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "JGwWNGJdvx8",
-      title: "Stories of Prophet Muhammad (PBUH)",
-      description: "Inspiring stories from the life of Prophet Muhammad",
-      thumbnail: "/islamic-art-calligraphy.jpg",
-      duration: "1:02:45",
-      viewCount: "15K",
-      publishedAt: "2024-01-05T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "hTWKbfoikeg",
-      title: "Ramadan Preparation Guide",
-      description: "How to prepare spiritually for the month of Ramadan",
-      thumbnail: "/ramadan-moon-lanterns.jpg",
-      duration: "28:00",
-      viewCount: "20K",
-      publishedAt: "2024-01-01T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "N9qYF9DZPdw",
-      title: "Islamic Ethics in Daily Life",
-      description: "Applying Islamic principles to modern life challenges",
-      thumbnail: "/muslim-family-gathering.jpg",
-      duration: "35:10",
-      viewCount: "7.8K",
-      publishedAt: "2023-12-20T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    },
-    {
-      id: "RgKAFK5djSk",
-      title: "Islamic Finance and Economics",
-      description: "Understanding Islamic principles in business and finance",
-      thumbnail: "/alhambra-islamic-architecture.jpg",
-      duration: "48:30",
-      viewCount: "13K",
-      publishedAt: "2023-12-15T10:00:00Z",
-      channelTitle: "Islamic Lectures"
-    }
-  ];
 }

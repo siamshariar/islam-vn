@@ -23,10 +23,10 @@ const getKey = (pageIndex: number, previousPageData: any) => {
 }
 
 interface VideosClientProps {
-  initialVideos: YouTubeVideo[]
+  // No props needed - videos are loaded from API only
 }
 
-export default function VideosClient({ initialVideos }: VideosClientProps) {
+export default function VideosClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null)
@@ -72,8 +72,8 @@ export default function VideosClient({ initialVideos }: VideosClientProps) {
   // Get videos from API data
   const apiVideos: YouTubeVideo[] = data ? data.flatMap(page => page.videos || []) : []
 
-  // Combine API videos with initial videos - always show videos immediately
-  const videos = apiVideos.length > 0 ? apiVideos : initialVideos
+  // Use only API videos - no fallback videos
+  const videos = apiVideos
 
   // Handle video param to open modal
   useEffect(() => {

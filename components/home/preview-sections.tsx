@@ -86,24 +86,14 @@ export function PreviewSections() {
           setVideos(data.videos)
           console.log(`Successfully loaded ${data.videos.length} videos for home page`)
         } else {
-          console.warn('No videos received from API, using fallback data')
-          // Use fallback data if API returns empty
-          setVideos([
-            { id: "dQw4w9WgXcQ", title: "Understanding Tawheed", viewCount: "12K", thumbnail: "/islamic-lecture-mosque.jpg", description: "", duration: "45:30", publishedAt: "", channelTitle: "Islamic Lectures" },
-            { id: "9bZkp7q19f0", title: "The Beauty of Salah", viewCount: "8.5K", thumbnail: "/muslim-prayer-dawn.jpg", description: "", duration: "32:15", publishedAt: "", channelTitle: "Islamic Lectures" },
-            { id: "JGwWNGJdvx8", title: "Stories of the Prophets", viewCount: "15K", thumbnail: "/islamic-art-calligraphy.jpg", description: "", duration: "1:02:45", publishedAt: "", channelTitle: "Islamic Lectures" },
-            { id: "hTWKbfoikeg", title: "Ramadan Preparation", viewCount: "20K", thumbnail: "/ramadan-moon-lanterns.jpg", description: "", duration: "28:00", publishedAt: "", channelTitle: "Islamic Lectures" },
-          ])
+          console.warn('No videos received from API')
+          // No fallback videos - just leave empty
+          setVideos([])
         }
       } catch (err) {
-        console.warn('Failed to load videos from API, using fallback data:', err instanceof Error ? err.message : 'Unknown error')
-        // Use fallback data if API fails
-        setVideos([
-          { id: "dQw4w9WgXcQ", title: "Understanding Tawheed", viewCount: "12K", thumbnail: "/islamic-lecture-mosque.jpg", description: "", duration: "45:30", publishedAt: "", channelTitle: "Islamic Lectures" },
-          { id: "9bZkp7q19f0", title: "The Beauty of Salah", viewCount: "8.5K", thumbnail: "/muslim-prayer-dawn.jpg", description: "", duration: "32:15", publishedAt: "", channelTitle: "Islamic Lectures" },
-          { id: "JGwWNGJdvx8", title: "Stories of the Prophets", viewCount: "15K", thumbnail: "/islamic-art-calligraphy.jpg", description: "", duration: "1:02:45", publishedAt: "", channelTitle: "Islamic Lectures" },
-          { id: "hTWKbfoikeg", title: "Ramadan Preparation", viewCount: "20K", thumbnail: "/ramadan-moon-lanterns.jpg", description: "", duration: "28:00", publishedAt: "", channelTitle: "Islamic Lectures" },
-        ])
+        console.warn('Failed to load videos from API:', err instanceof Error ? err.message : 'Unknown error')
+        // No fallback videos - just leave empty
+        setVideos([])
       } finally {
         setLoading(false)
       }
