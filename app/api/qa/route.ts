@@ -56,10 +56,6 @@ export async function GET(request: NextRequest) {
       hasMore: page < totalPages
     })
   } catch (error) {
-    console.error("Error in QA API:", error)
-    return NextResponse.json(
-      { error: 'Failed to fetch Q&A' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch Q&A' }, { status: 500 })
   }
 }

@@ -30,8 +30,10 @@ const getAllVideos = async (): Promise<YouTubeVideo[]> => {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/videos?maxResults=50`, {
-      next: { revalidate: 3600 } // ISR - revalidate every hour
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/videos?maxResults=50`, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!response.ok) throw new Error('Failed to fetch videos')
 
@@ -40,13 +42,12 @@ const getAllVideos = async (): Promise<YouTubeVideo[]> => {
     cacheTimestamp = now
     return videosCache
   } catch (error) {
-    console.error('Error fetching videos:', error)
+    console.error('Error fetching videos:', error instanceof Error ? error.message : error)
     // Return cached data if available, otherwise empty array
     return videosCache.length > 0 ? videosCache : []
   }
 }
 
-// This would typically come from your API or database
 const getVideoById = async (id: string): Promise<YouTubeVideo | null> => {
   const videos = await getAllVideos()
   return videos.find((video: YouTubeVideo) => video.id === id) || null
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   if (!video) {
     return {
-      title: 'Video Not Found | Islam VN Dashboard'
+      title: 'Video Not Found | Islam VN'
     }
   }
 
@@ -81,20 +82,31 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 export async function generateStaticParams() {
   const videos = await getAllVideos()
+  
+  // Return empty array during build to avoid build failures
+  if (videos.length === 0) {
+    return []
+  }
+  
   return videos.map((video: YouTubeVideo) => ({
     id: video.id,
   }))
 }
 
-export default async function VideoDetailPage({ params, searchParams }: { params: { id: string }, searchParams?: { [key: string]: string | string[] | undefined } }) {
+export default async function VideoDetailPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: { id: string }, 
+  searchParams?: { [key: string]: string | string[] | undefined } 
+}) {
   const video = await getVideoById(params.id)
 
   if (!video) {
     redirect('/videos')
   }
 
-  // Preserve incoming `q` (search) param when redirecting so
-  // `/videos?video=ID&q=term` opens the modal and keeps search.
+  // Preserve incoming `q` (search) param when redirecting
   const qParam = searchParams?.q
   const qValue = Array.isArray(qParam) ? qParam[0] : qParam
   const base = `/videos?video=${encodeURIComponent(params.id)}`
