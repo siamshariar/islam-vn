@@ -206,7 +206,7 @@ export default function SearchMasjidClient() {
             </div>
           )}
 
-          <button onClick={scrollToTop} className={`fixed bottom-6 right-6 w-10 h-10 bg-emerald text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 hover:bg-emerald/90 ${showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`} aria-label="Back to top" style={{ boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)' }}>
+          <button onClick={scrollToTop} className={`scroll-top-btn w-12 h-12 bg-emerald text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 hover:bg-emerald/90 ${showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`} aria-label="Back to top" style={{ boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)' }}>
             <ArrowUp className="w-4 h-4" />
           </button>
         </div>

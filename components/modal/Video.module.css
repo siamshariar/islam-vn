@@ -107,7 +107,6 @@
 
   .content {
     width: 100%;
-    max-width: 1000;
     margin: 0;
   }
 
@@ -122,7 +121,7 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) {
   .content {
     width: 84%;
     max-width: 1000px;

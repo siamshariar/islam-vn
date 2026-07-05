@@ -16,7 +16,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
       <div className="lg:ml-72">
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="pb-20 lg:pb-8">{children}</main>
+        <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-8">{children}</main>
       </div>
 
       <BottomNav />

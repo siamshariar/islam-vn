@@ -39,13 +39,25 @@ export default function SharePage() {
             <div className="p-6">
               <h2 className="text-xl font-bold mb-6">Share via Social Media</h2>
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-14 rounded-xl justify-start bg-transparent">
-                  <Facebook className="w-5 h-5 mr-3 text-blue-600" />
-                  Facebook
+                <Button asChild variant="outline" className="h-14 rounded-xl justify-start bg-transparent">
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(siteUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Facebook className="w-5 h-5 mr-3 text-blue-600" />
+                    Facebook
+                  </a>
                 </Button>
-                <Button variant="outline" className="h-14 rounded-xl justify-start bg-transparent">
-                  <Twitter className="w-5 h-5 mr-3 text-sky-500" />
-                  Twitter
+                <Button asChild variant="outline" className="h-14 rounded-xl justify-start bg-transparent">
+                  <a
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(siteUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Twitter className="w-5 h-5 mr-3 text-sky-500" />
+                    Twitter
+                  </a>
                 </Button>
               </div>
             </div>

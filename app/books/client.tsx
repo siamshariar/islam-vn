@@ -752,7 +752,7 @@ export default function BooksClient({ books: initialBooks, totalPages: initialTo
 
           <button
             onClick={scrollToTop}
-            className={`fixed bottom-6 right-6 w-12 h-12 bg-emerald text-white cursor-pointer rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 hover:bg-emerald/90 ${
+            className={`scroll-top-btn w-12 h-12 bg-emerald text-white cursor-pointer rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-50 hover:bg-emerald/90 ${
               showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
             }`}
             aria-label="Back to top"

@@ -45,8 +45,8 @@ export default function DonatePage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {donationTiers.map((tier, index) => (
               <CardWrapper key={tier.amount} delay={index * 0.1}>
-                <button className="w-full p-5 text-center hover:bg-emerald/5 transition-colors">
-                  <p className="text-2xl font-bold text-emerald mb-1">{tier.label}</p>
+                <button className="w-full p-4 sm:p-5 text-center hover:bg-emerald/5 transition-colors">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-emerald mb-1 break-words">{tier.label}</p>
                   <p className="text-xs text-muted-foreground">{tier.description}</p>
                 </button>
               </CardWrapper>
