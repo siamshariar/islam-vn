@@ -13,7 +13,8 @@ const navItems = [
   { href: "/qa", label: "Q&A", icon: HelpCircle },
 ]
 
-export const DETAIL_PAGE_PATTERN = /^\/(videos|articles|books|masjid)\/[^/]+$/
+export const DETAIL_PAGE_PATTERN =
+  /^\/(videos|articles|books|masjid)\/[^/]+$|^\/(new-muslim|non-muslim)\/.+$/
 
 export function BottomNav() {
   const pathname = usePathname()

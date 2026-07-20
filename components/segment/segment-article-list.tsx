@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { ScrollToTopButton } from "@/components/ui/scroll-to-top-button"
 
 interface SegmentArticle {
   id: string
@@ -70,6 +71,8 @@ export function SegmentArticleList({
           </CardWrapper>
         ))}
       </div>
+
+      <ScrollToTopButton accent={accent} />
     </div>
   )
 }

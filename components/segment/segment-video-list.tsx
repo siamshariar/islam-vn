@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import Link from "next/link"
 import { ChevronLeft, Play } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { ScrollToTopButton } from "@/components/ui/scroll-to-top-button"
 import VideoModalHome from "@/components/modal/VideoModalHome"
 import type { SegmentVideo } from "@/lib/new-muslim-videos"
 
@@ -116,6 +117,8 @@ export function SegmentVideoList({
           ))}
         </div>
       </div>
+
+      <ScrollToTopButton accent={accent} />
 
       {selectedVideo && (
         <VideoModalHome

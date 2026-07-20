@@ -40,7 +40,7 @@ export function CardSlider({
           type="button"
           variant="outline"
           size="icon"
-          className="rounded-xl bg-transparent"
+          className="rounded-xl bg-transparent cursor-pointer"
           onClick={() => scroll("left")}
           aria-label="Scroll left"
         >
@@ -50,7 +50,7 @@ export function CardSlider({
           type="button"
           variant="outline"
           size="icon"
-          className="rounded-xl bg-transparent"
+          className="rounded-xl bg-transparent cursor-pointer"
           onClick={() => scroll("right")}
           aria-label="Scroll right"
         >

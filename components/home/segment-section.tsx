@@ -111,10 +111,10 @@ function Segment({ title, description, icon: Icon, content, href, accentColor, o
 
       {/* Carousel controls */}
       <div className="flex justify-end gap-2 mb-4">
-        <Button variant="outline" size="icon" className="rounded-xl bg-transparent" onClick={() => scroll("left")}>
+        <Button variant="outline" size="icon" className="rounded-xl bg-transparent cursor-pointer" onClick={() => scroll("left")}>
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <Button variant="outline" size="icon" className="rounded-xl bg-transparent" onClick={() => scroll("right")}>
+        <Button variant="outline" size="icon" className="rounded-xl bg-transparent cursor-pointer" onClick={() => scroll("right")}>
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>

@@ -37,7 +37,7 @@ export function HorizontalScroller({
         size="icon"
         onClick={() => scroll("left")}
         aria-label="Scroll left"
-        className="hidden lg:flex flex-shrink-0 rounded-xl bg-transparent"
+        className="hidden lg:flex flex-shrink-0 rounded-xl bg-transparent cursor-pointer"
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
@@ -54,7 +54,7 @@ export function HorizontalScroller({
         size="icon"
         onClick={() => scroll("right")}
         aria-label="Scroll right"
-        className="hidden lg:flex flex-shrink-0 rounded-xl bg-transparent"
+        className="hidden lg:flex flex-shrink-0 rounded-xl bg-transparent cursor-pointer"
       >
         <ChevronRight className="w-4 h-4" />
       </Button>

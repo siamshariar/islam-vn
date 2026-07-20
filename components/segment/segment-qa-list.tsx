@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronLeft, ChevronUp, HelpCircle } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { ScrollToTopButton } from "@/components/ui/scroll-to-top-button"
 
 interface SegmentQA {
   id: string
@@ -74,6 +75,8 @@ export function SegmentQAList({ items, title, backHref, backLabel, accent }: Seg
           )
         })}
       </div>
+
+      <ScrollToTopButton accent={accent} />
     </div>
   )
 }
