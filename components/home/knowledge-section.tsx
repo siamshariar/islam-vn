@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight, Sparkles } from "lucide-react"
 import Image from "next/image"
 
@@ -31,13 +30,7 @@ export function KnowledgeSection() {
   return (
     <section className="py-16 px-4 lg:px-8">
       {/* Section Header */}
-      <motion.div
-        className="text-center mb-12"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald/10 text-emerald text-sm font-medium mb-4">
           <Sparkles className="w-4 h-4" />
           <span>Deepen Your Knowledge</span>
@@ -51,23 +44,17 @@ export function KnowledgeSection() {
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
           Access the Quran and Hadith in Vietnamese - the two foundational texts of Islamic knowledge.
         </p>
-      </motion.div>
+      </div>
 
       {/* Mega Cards Grid */}
       <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
         {knowledgeCards.map((card, index) => (
-          <motion.a
+          <a
             key={card.id}
             href={card.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative overflow-hidden rounded-3xl bg-card border border-border/50 backdrop-blur-sm"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.15 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="group relative overflow-hidden rounded-3xl bg-card border border-border/50 backdrop-blur-sm transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
           >
             {/* Glassmorphism background gradient */}
             <div
@@ -94,13 +81,9 @@ export function KnowledgeSection() {
 
               {/* Description - revealed on hover */}
               <div className="flex-1 flex flex-col justify-end">
-                <motion.p
-                  className="text-muted-foreground mb-6 text-base lg:text-lg leading-relaxed"
-                  initial={{ opacity: 0.7 }}
-                  whileHover={{ opacity: 1 }}
-                >
+                <p className="text-muted-foreground mb-6 text-base lg:text-lg leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
                   {card.description}
-                </motion.p>
+                </p>
 
                 {/* CTA Button */}
                 <div
@@ -122,7 +105,7 @@ export function KnowledgeSection() {
                 card.accentColor === "emerald" ? "border-emerald/30" : "border-gold/30"
               }`}
             />
-          </motion.a>
+          </a>
         ))}
       </div>
     </section>

@@ -3,7 +3,6 @@
 import { Heart, CreditCard, Building, Smartphone, CheckCircle } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
 
 const donationTiers = [
   { amount: 100000, label: "100,000 VND", description: "Support educational materials" },
@@ -25,12 +24,7 @@ export default function DonatePage() {
     <div className="px-4 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Hero */}
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="text-center mb-12">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald to-gold flex items-center justify-center mx-auto mb-6">
               <Heart className="w-10 h-10 text-white" />
             </div>
@@ -39,7 +33,7 @@ export default function DonatePage() {
               Your generous contribution helps us spread authentic Islamic knowledge and support the Muslim community in
               Vietnam.
             </p>
-          </motion.div>
+          </div>
 
           {/* Donation Tiers */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">

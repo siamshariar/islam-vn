@@ -4,40 +4,16 @@ import { useState, useRef } from "react"
 import Link from "next/link"
 import { Play, FileText, HelpCircle, Lightbulb, ChevronRight, BookOpen } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
-import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
 import { nonMuslimArticles } from "@/lib/non-muslim-articles"
 import { nonMuslimBooks } from "@/lib/non-muslim-books"
 import { nonMuslimQA } from "@/lib/non-muslim-qa"
+import { nonMuslimVideos } from "@/lib/non-muslim-videos"
 import { BookCover } from "../books/client"
 import VideoModalHome from "@/components/modal/VideoModalHome"
 
 const resources = {
-  videos: [
-    {
-      id: "76vanFKw664",
-      title: "What is Islam? An Introduction",
-      thumbnail: `https://img.youtube.com/vi/76vanFKw664/mqdefault.jpg`,
-      description: "A comprehensive introduction to Islam for beginners"
-    },
-    {
-      id: "DdWxCVYAOCk",
-      title: "Who was Prophet Muhammad?",
-      thumbnail: `https://img.youtube.com/vi/DdWxCVYAOCk/mqdefault.jpg`,
-      description: "Learn about the life and teachings of Prophet Muhammad (PBUH)"
-    },
-    {
-      id: "W_1RSVo3dLg",
-      title: "Islam and Science - Harmony of Knowledge",
-      thumbnail: `https://img.youtube.com/vi/W_1RSVo3dLg/mqdefault.jpg`,
-      description: "Discover the scientific miracles in the Quran and Islamic teachings"
-    },
-    {
-      id: "Eh6BTRDLLMA",
-      title: "Women in Islam - Truth vs Myths",
-      thumbnail: `https://img.youtube.com/vi/Eh6BTRDLLMA/mqdefault.jpg`,
-      description: "Understanding the true status and rights of women in Islam"
-    },
-  ],
+  videos: nonMuslimVideos,
   articles: nonMuslimArticles.slice(0, 4).map(article => ({
     id: article.id,
     title: article.title,
@@ -109,12 +85,7 @@ export default function NonMuslimPage() {
     <>
       <div className="px-4 lg:px-8 py-8">
         {/* Welcome Section */}
-        <motion.div
-          className="text-center mb-12 py-12 px-6 bg-gradient-to-br from-gold/10 to-orange/5 rounded-3xl"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="text-center mb-12 py-12 px-6 bg-gradient-to-br from-gold/10 to-orange/5 rounded-3xl">
           <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-6">
             <Lightbulb className="w-8 h-8 text-gold" />
           </div>
@@ -123,7 +94,7 @@ export default function NonMuslimPage() {
             Welcome! We're glad you're curious about Islam. Explore our resources to learn about the religion practiced
             by nearly 2 billion people worldwide.
           </p>
-        </motion.div>
+        </div>
 
         {/* Quick FAQs */}
         <div className="mb-12">
@@ -139,6 +110,11 @@ export default function NonMuslimPage() {
                 </div>
               </CardWrapper>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-gold text-gold hover:bg-gold/10">
+              <Link href="/non-muslim/qa">View More Q&A</Link>
+            </Button>
           </div>
         </div>
 
@@ -180,6 +156,11 @@ export default function NonMuslimPage() {
               </CardWrapper>
             ))}
           </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-gold text-gold hover:bg-gold/10">
+              <Link href="/non-muslim/videos">View More Videos</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Articles */}
@@ -190,7 +171,7 @@ export default function NonMuslimPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {resources.articles.map((article, index) => (
               <CardWrapper key={article.id} delay={index * 0.05}>
-                <Link href={`/articles/${article.id}`} className="block p-5 hover:bg-muted/50 transition-colors">
+                <Link href={`/non-muslim/articles/${article.id}`} className="block p-5 hover:bg-muted/50 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
                       <FileText className="w-6 h-6 text-gold" />
@@ -209,6 +190,11 @@ export default function NonMuslimPage() {
               </CardWrapper>
             ))}
           </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-gold text-gold hover:bg-gold/10">
+              <Link href="/non-muslim/articles">View More Articles</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Books */}
@@ -219,11 +205,16 @@ export default function NonMuslimPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {resources.books.map((book, index) => (
               <CardWrapper key={book.id} delay={index * 0.05}>
-                <Link href={`/books/${book.id}`}>
+                <Link href={`/non-muslim/books/${book.id}`}>
                   <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
                 </Link>
               </CardWrapper>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-gold text-gold hover:bg-gold/10">
+              <Link href="/non-muslim/books">View More Books</Link>
+            </Button>
           </div>
         </section>
       </div>

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Search, Clock, ChevronRight, X, ArrowUp, FileText } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { HorizontalScroller } from "@/components/ui/horizontal-scroller"
 import { Input } from "@/components/ui/input"
 import { Article } from "@/lib/articles"
 
@@ -539,7 +540,7 @@ export default function ArticlesClient({
           </div>
 
           {/* Category filters */}
-          <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+          <HorizontalScroller className="gap-2" containerClassName="mb-6">
             {categories.map((category) => (
               <button
                 key={category}
@@ -553,7 +554,7 @@ export default function ArticlesClient({
                 {category}
               </button>
             ))}
-          </div>
+          </HorizontalScroller>
 
           {/* Search Loading */}
           {isSearching && <SearchLoadingAnimation />}

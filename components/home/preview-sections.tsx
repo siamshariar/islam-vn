@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Play, BookOpen, ChevronRight, Loader2, HelpCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { Play, BookOpen, ChevronRight, Loader2, HelpCircle, ChevronDown, ChevronUp, Sparkles } from "lucide-react"
 import { SectionHeader } from "@/components/ui/section-header"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { CardSlider } from "@/components/ui/card-slider"
+import { Button } from "@/components/ui/button"
 import VideoModalHome from "@/components/modal/VideoModalHome"
 import { motion, AnimatePresence } from "framer-motion"
 import { books } from "@/lib/books"
@@ -43,24 +45,26 @@ const allArticles = (() => {
   })
 })()
 
-// Get 4 articles - first from "Evidence Islam is Truth" category, then others
+// Get articles - first from "Evidence Islam is Truth" category, then others
+const HOME_ARTICLES_COUNT = 8
+
 const getLatestArticles = () => {
   const selectedArticles: typeof allArticles = []
-  
+
   const evidenceArticles = allArticles.filter(a => a.category === "Evidence Islam is Truth")
-  
+
   for (const article of evidenceArticles) {
-    if (selectedArticles.length >= 4) break
+    if (selectedArticles.length >= HOME_ARTICLES_COUNT) break
     selectedArticles.push(article)
   }
-  
-  if (selectedArticles.length < 4) {
+
+  if (selectedArticles.length < HOME_ARTICLES_COUNT) {
     const selectedIds = new Set(selectedArticles.map(a => a.id))
     const seenCategories = new Set<string>()
     seenCategories.add("Evidence Islam is Truth")
-    
+
     for (const article of allArticles) {
-      if (selectedArticles.length >= 4) break
+      if (selectedArticles.length >= HOME_ARTICLES_COUNT) break
       if (!selectedIds.has(article.id) && !seenCategories.has(article.category)) {
         seenCategories.add(article.category)
         selectedArticles.push(article)
@@ -68,19 +72,19 @@ const getLatestArticles = () => {
       }
     }
   }
-  
-  if (selectedArticles.length < 4) {
+
+  if (selectedArticles.length < HOME_ARTICLES_COUNT) {
     const selectedIds = new Set(selectedArticles.map(a => a.id))
     for (const article of allArticles) {
-      if (selectedArticles.length >= 4) break
+      if (selectedArticles.length >= HOME_ARTICLES_COUNT) break
       if (!selectedIds.has(article.id)) {
         selectedArticles.push(article)
         selectedIds.add(article.id)
       }
     }
   }
-  
-  return selectedArticles.slice(0, 4)
+
+  return selectedArticles.slice(0, HOME_ARTICLES_COUNT)
 }
 
 // Deduplicate Q&A items
@@ -178,7 +182,7 @@ export function PreviewSections() {
     const loadVideos = async () => {
       setLoading(true)
       try {
-        const response = await fetch('/api/videos?maxResults=4&page=1', {
+        const response = await fetch('/api/videos?maxResults=8&page=1', {
           headers: { 'Cache-Control': 'no-cache' }
         })
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
@@ -199,17 +203,20 @@ export function PreviewSections() {
   }, [])
 
   return (
-    <div className="px-4 lg:px-8 py-8 space-y-12">
-      
+    <div className="py-8">
+
       {/* ============================================ */}
       {/* 1. VIDEOS SECTION */}
       {/* ============================================ */}
-      <section>
-        <SectionHeader title="Videos" href="/videos" viewAllText="View All" />
+      <section className="relative overflow-hidden py-12 px-4 lg:px-8 rounded-3xl mx-4 lg:mx-8 mb-8 bg-gradient-to-br from-emerald/5 to-emerald/10">
+        <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
+          <Sparkles className="w-20 h-20 text-emerald" />
+        </div>
+        <SectionHeader title="Videos" />
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, index) => (
-              <CardWrapper key={index} delay={index * 0.1}>
+          <CardSlider className="gap-4" scrollAmount={296}>
+            {[...Array(8)].map((_, index) => (
+              <CardWrapper key={index} className="flex-shrink-0 w-[260px] sm:w-[280px]">
                 <div className="aspect-video bg-muted animate-pulse rounded-lg flex items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin text-emerald" />
                 </div>
@@ -219,11 +226,11 @@ export function PreviewSections() {
                 </div>
               </CardWrapper>
             ))}
-          </div>
+          </CardSlider>
         ) : videos.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardSlider className="gap-4" scrollAmount={296} viewAllHref="/videos" viewAllText="View All Videos">
             {videos.map((video, index) => (
-              <CardWrapper key={video.id} delay={index * 0.1}>
+              <CardWrapper key={video.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
                 <button type="button" onClick={() => {
                   setSelectedVideo(video)
                   const newUrl = new URL(window.location.href)
@@ -250,7 +257,7 @@ export function PreviewSections() {
                 </button>
               </CardWrapper>
             ))}
-          </div>
+          </CardSlider>
         ) : (
           <div className="text-center py-8 bg-muted/30 rounded-2xl">
             <Play className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
@@ -263,11 +270,14 @@ export function PreviewSections() {
       {/* ============================================ */}
       {/* 2. ARTICLES SECTION */}
       {/* ============================================ */}
-      <section>
-        <SectionHeader title="Latest Articles" href="/articles" viewAllText="View All" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="relative overflow-hidden py-12 px-4 lg:px-8 rounded-3xl mx-4 lg:mx-8 mb-8 bg-gradient-to-br from-gold/5 to-orange/10">
+        <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
+          <Sparkles className="w-20 h-20 text-gold" />
+        </div>
+        <SectionHeader title="Latest Articles" />
+        <CardSlider className="gap-4" scrollAmount={296} viewAllHref="/articles" viewAllText="View All Articles">
           {featuredArticles.map((article: any, index: number) => (
-            <CardWrapper key={article.id} delay={index * 0.1}>
+            <CardWrapper key={article.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
               <Link href={`/articles/${article.id}`} className="block h-full group">
                 {article.featureImage && (
                   <div className="aspect-video bg-muted rounded-t-2xl overflow-hidden">
@@ -288,17 +298,20 @@ export function PreviewSections() {
               </Link>
             </CardWrapper>
           ))}
-        </div>
+        </CardSlider>
       </section>
 
       {/* ============================================ */}
       {/* 3. BOOKS SECTION */}
       {/* ============================================ */}
-      <section>
-        <SectionHeader title="Books" href="/books" viewAllText="View All" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {allBooks.slice(0, 4).map((book, index) => (
-            <CardWrapper key={book.id} delay={index * 0.1}>
+      <section className="relative overflow-hidden py-12 px-4 lg:px-8 rounded-3xl mx-4 lg:mx-8 mb-8 bg-gradient-to-br from-emerald/5 via-gold/5 to-orange/5">
+        <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
+          <Sparkles className="w-20 h-20 text-orange" />
+        </div>
+        <SectionHeader title="Books" />
+        <CardSlider className="gap-4" scrollAmount={200} viewAllHref="/books" viewAllText="View All Books">
+          {allBooks.slice(0, 8).map((book, index) => (
+            <CardWrapper key={book.id} className="flex-shrink-0 w-[160px] sm:w-[190px]">
               <Link href={`/books/${book.id}`}>
                 <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
               </Link>
@@ -307,14 +320,17 @@ export function PreviewSections() {
               </div>
             </CardWrapper>
           ))}
-        </div>
+        </CardSlider>
       </section>
 
       {/* ============================================ */}
       {/* 4. Q&A SECTION - Fixed: cards stay in position when expanded */}
       {/* ============================================ */}
-      <section>
-        <SectionHeader title="Questions & Answers" href="/qa" viewAllText="View All" />
+      <section className="relative overflow-hidden py-12 px-4 lg:px-8 rounded-3xl mx-4 lg:mx-8 mb-8 bg-gradient-to-br from-emerald/5 to-gold/10">
+        <div className="absolute top-4 right-4 opacity-10 pointer-events-none">
+          <Sparkles className="w-20 h-20 text-emerald" />
+        </div>
+        <SectionHeader title="Questions & Answers" />
         {/* Using CSS columns for better layout when items expand */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {featuredQA.map((item, index) => (
@@ -372,6 +388,11 @@ export function PreviewSections() {
               </button>
             </CardWrapper>
           ))}
+        </div>
+        <div className="mt-6 text-center">
+          <Button asChild variant="outline" className="rounded-xl border-emerald text-emerald hover:bg-emerald/10">
+            <Link href="/qa">View All Q&A</Link>
+          </Button>
         </div>
       </section>
 

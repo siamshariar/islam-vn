@@ -4,40 +4,16 @@ import { useState, useRef } from "react"
 import Link from "next/link"
 import { Play, FileText, BookOpen, Heart, Star, ChevronRight, HelpCircle } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
-import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
 import { newMuslimArticles } from "@/lib/new-muslim-articles"
 import { newMuslimBooks } from "@/lib/new-muslim-books"
 import { newMuslimQA } from "@/lib/new-muslim-qa"
+import { newMuslimVideos } from "@/lib/new-muslim-videos"
 import { BookCover } from "../books/client"
 import VideoModalHome from "@/components/modal/VideoModalHome"
 
 const resources = {
-  videos: [
-    {
-      id: "243ypvkL8R8",
-      title: "Your First Steps as a New Muslim",
-      thumbnail: `https://img.youtube.com/vi/243ypvkL8R8/mqdefault.jpg`,
-      description: "Essential guidance for those who have just embraced Islam"
-    },
-    {
-      id: "P29LMOHhpjE",
-      title: "Learning to Pray - Complete Guide",
-      thumbnail: `https://img.youtube.com/vi/P29LMOHhpjE/mqdefault.jpg`,
-      description: "Step-by-step tutorial on how to perform Islamic prayers"
-    },
-    {
-      id: "2ZEmsdEOpbk",
-      title: "Understanding Islamic Basics",
-      thumbnail: `https://img.youtube.com/vi/2ZEmsdEOpbk/mqdefault.jpg`,
-      description: "Fundamental concepts every new Muslim should know"
-    },
-    {
-      id: "YHwLYn2WJ0E",
-      title: "Daily Islamic Practices",
-      thumbnail: `https://img.youtube.com/vi/YHwLYn2WJ0E/mqdefault.jpg`,
-      description: "Building healthy Islamic habits in your daily routine"
-    },
-  ],
+  videos: newMuslimVideos,
   articles: newMuslimArticles.slice(0, 4).map(article => ({
     id: article.id,
     title: article.title,
@@ -109,12 +85,7 @@ export default function NewMuslimPage() {
     <>
       <div className="px-4 lg:px-8 py-8">
         {/* Welcome Section */}
-        <motion.div
-          className="text-center mb-12 py-12 px-6 bg-gradient-to-br from-emerald/10 to-emerald/5 rounded-3xl"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="text-center mb-12 py-12 px-6 bg-gradient-to-br from-emerald/10 to-emerald/5 rounded-3xl">
           <div className="w-16 h-16 rounded-full bg-emerald/20 flex items-center justify-center mx-auto mb-6">
             <Heart className="w-8 h-8 text-emerald" />
           </div>
@@ -123,7 +94,7 @@ export default function NewMuslimPage() {
             Congratulations on embracing Islam! We're here to support you every step of the way. Explore our curated
             resources designed specifically for new Muslims.
           </p>
-        </motion.div>
+        </div>
 
         {/* Quick FAQs */}
         <div className="mb-12">
@@ -139,6 +110,11 @@ export default function NewMuslimPage() {
                 </div>
               </CardWrapper>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-emerald text-emerald hover:bg-emerald/10">
+              <Link href="/new-muslim/qa">View More Q&A</Link>
+            </Button>
           </div>
         </div>
 
@@ -199,6 +175,11 @@ export default function NewMuslimPage() {
               </CardWrapper>
             ))}
           </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-emerald text-emerald hover:bg-emerald/10">
+              <Link href="/new-muslim/videos">View More Videos</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Articles */}
@@ -209,7 +190,7 @@ export default function NewMuslimPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {resources.articles.map((article, index) => (
               <CardWrapper key={article.id} delay={index * 0.05}>
-                <Link href={`/articles/${article.id}`} className="block p-5 hover:bg-muted/50 transition-colors">
+                <Link href={`/new-muslim/articles/${article.id}`} className="block p-5 hover:bg-muted/50 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-emerald/10 flex items-center justify-center flex-shrink-0">
                       <FileText className="w-6 h-6 text-emerald" />
@@ -228,6 +209,11 @@ export default function NewMuslimPage() {
               </CardWrapper>
             ))}
           </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-emerald text-emerald hover:bg-emerald/10">
+              <Link href="/new-muslim/articles">View More Articles</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Books */}
@@ -238,11 +224,16 @@ export default function NewMuslimPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {resources.books.map((book, index) => (
               <CardWrapper key={book.id} delay={index * 0.05}>
-                <Link href={`/books/${book.id}`}>
+                <Link href={`/new-muslim/books/${book.id}`}>
                   <BookCover title={book.title} author={book.author} color={book.color} thumbnail={book.thumbnail} />
                 </Link>
               </CardWrapper>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline" className="rounded-xl border-emerald text-emerald hover:bg-emerald/10">
+              <Link href="/new-muslim/books">View More Books</Link>
+            </Button>
           </div>
         </section>
       </div>

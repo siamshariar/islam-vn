@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { ChevronLeft, Clock, Calendar, Tag } from "lucide-react"
 import { articles } from "@/lib/articles"
 import { newMuslimArticles } from "@/lib/new-muslim-articles"
@@ -170,12 +169,7 @@ export default function ArticleDetailPage() {
         {article ? (
           <>
             {/* Article Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mb-8"
-            >
+            <div className="mb-8">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald/10 text-emerald rounded-lg text-sm font-medium">
                   <Tag className="w-3.5 h-3.5" />
@@ -196,16 +190,11 @@ export default function ArticleDetailPage() {
               </h1>
 
               <p className="text-xl text-muted-foreground leading-relaxed">{article.excerpt}</p>
-            </motion.div>
+            </div>
 
             {/* Feature Image */}
             {article.featureImage && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2, delay: 0.05 }}
-                className="mb-10"
-              >
+              <div className="mb-10">
                 <img
                   src={article.featureImage}
                   alt={article.title}
@@ -214,16 +203,11 @@ export default function ArticleDetailPage() {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-              </motion.div>
+              </div>
             )}
 
             {/* Article Content */}
-            <motion.article
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, delay: 0.1 }}
-              className="prose prose-lg prose-emerald max-w-none"
-            >
+            <article className="prose prose-lg prose-emerald max-w-none">
               {article.content.split("\n\n").map((paragraph: string, index: number) => {
                 if (paragraph.startsWith("## ")) {
                   return (
@@ -257,7 +241,7 @@ export default function ArticleDetailPage() {
                   </p>
                 )
               })}
-            </motion.article>
+            </article>
 
             {/* Bottom navigation */}
             <div className="mt-16 pt-8 border-t border-border">

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react
 import { useSearchParams, useRouter } from "next/navigation"
 import { Search, HelpCircle, ChevronDown, ChevronUp, X, ArrowUp, MessageCircle } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
+import { HorizontalScroller } from "@/components/ui/horizontal-scroller"
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion"
 import { qaItems } from "@/lib/qa"
@@ -402,13 +403,13 @@ export default function QAClient({ qaItems: initialItems, totalPages: initialTot
             </div>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
+          <HorizontalScroller className="gap-2" containerClassName="mb-6">
             {allCategories.map((category) => (
               <button key={category} onClick={() => handleCategoryChange(category)} className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === category ? "bg-emerald text-white" : "bg-muted text-muted-foreground hover:bg-emerald/10 hover:text-emerald"}`}>
                 {formatCategory(category)}
               </button>
             ))}
-          </div>
+          </HorizontalScroller>
 
           {isSearching && <SearchLoadingAnimation />}
 

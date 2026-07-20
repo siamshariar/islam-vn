@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { BookOpen, Download, ChevronLeft, User, Languages, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { books } from "@/lib/books"
@@ -186,11 +185,7 @@ export default function BookDetailPage() {
       <div className="grid lg:grid-cols-[280px_1fr] xl:grid-cols-[340px_1fr] gap-8 lg:gap-10 xl:gap-12">
         
         {/* Book Cover - Left aligned on all screens */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
+        <div>
           <div className="sticky top-8">
             {/* Mobile: left aligned with max-width. Desktop: full width in column */}
             <div className="w-[240px] sm:w-[260px] lg:w-full">
@@ -220,7 +215,7 @@ export default function BookDetailPage() {
               )}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Column: Metadata and Content */}
         <div className="space-y-6 sm:space-y-8">

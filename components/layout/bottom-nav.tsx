@@ -13,8 +13,14 @@ const navItems = [
   { href: "/qa", label: "Q&A", icon: HelpCircle },
 ]
 
+export const DETAIL_PAGE_PATTERN = /^\/(videos|articles|books|masjid)\/[^/]+$/
+
 export function BottomNav() {
   const pathname = usePathname()
+
+  if (DETAIL_PAGE_PATTERN.test(pathname)) {
+    return null
+  }
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border z-40 pb-safe">

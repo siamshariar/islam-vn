@@ -127,6 +127,19 @@
   background: oklch(0.35 0.1 145 / 0.5);
 }
 
+/* Hide scrollbar but keep drag/swipe scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Marquee animation */
 @keyframes marquee {
   0% {

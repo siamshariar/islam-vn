@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, UserPlus, Users, Play, FileText, Sparkles } from "lucide-react"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
@@ -94,13 +93,7 @@ function Segment({ title, description, icon: Icon, content, href, accentColor, o
   const bgGradient = accentColor === "emerald" ? "from-emerald/5 to-emerald/10" : "from-gold/5 to-orange/10"
 
   return (
-    <motion.section
-      className={`relative py-12 px-4 lg:px-8 bg-gradient-to-br ${bgGradient} rounded-3xl mx-4 lg:mx-8 mb-8`}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-    >
+    <section className={`relative py-12 px-4 lg:px-8 bg-gradient-to-br ${bgGradient} rounded-3xl mx-4 lg:mx-8 mb-8`}>
       {/* Floating decorative element */}
       <div className="absolute top-4 right-4 opacity-10">
         <Sparkles className={`w-20 h-20 ${accentColor === "emerald" ? "text-emerald" : "text-gold"}`} />
@@ -204,7 +197,7 @@ function Segment({ title, description, icon: Icon, content, href, accentColor, o
           <Link href={href}>View All Resources</Link>
         </Button>
       </div>
-    </motion.section>
+    </section>
   )
 }
 

@@ -4,7 +4,6 @@ import { Smartphone, Download, Star, CheckCircle } from "lucide-react"
 import { MainLayout } from "@/components/layout/main-layout"
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
 
 const features = [
   "Access all videos offline",
@@ -20,12 +19,7 @@ export default function AppPage() {
     <MainLayout>
       <div className="px-4 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="text-center mb-12">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald to-emerald-light flex items-center justify-center mx-auto mb-6 shadow-xl">
               <Smartphone className="w-12 h-12 text-white" />
             </div>
@@ -33,7 +27,7 @@ export default function AppPage() {
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Take Islam VN with you everywhere. Download our mobile app for the best experience.
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             <CardWrapper>

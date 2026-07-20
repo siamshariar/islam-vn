@@ -12,14 +12,17 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 bg-background">
-      <div className="flex items-center justify-between px-4 lg:px-8 py-3">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center lg:flex lg:justify-between px-4 lg:px-8 py-3">
         {/* Mobile Menu Button */}
-        <button onClick={onMenuClick} className="lg:hidden p-2 rounded-xl hover:bg-muted transition-colors">
+        <button
+          onClick={onMenuClick}
+          className="justify-self-start lg:hidden p-2 rounded-xl hover:bg-muted transition-colors"
+        >
           <Menu className="w-6 h-6 text-emerald" />
         </button>
 
-        {/* Logo for mobile */}
-        <Link href="/" className="lg:hidden">
+        {/* Logo for mobile - centered between hamburger and Contribute button */}
+        <Link href="/" className="justify-self-center lg:hidden">
           <Image src="/images/islam.png" alt="Islam VN" width={100} height={35} className="h-8 w-auto" />
         </Link>
 
@@ -33,11 +36,11 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Contribute Button */}
         <Button
           asChild
-          className="bg-gradient-to-r from-emerald to-emerald-light hover:from-emerald-light hover:to-emerald text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+          className="justify-self-end px-3 lg:px-4 bg-gradient-to-r from-emerald to-emerald-light hover:from-emerald-light hover:to-emerald text-white rounded-xl shadow-md hover:shadow-lg transition-all"
         >
           <Link href="/donate">
-            <Heart className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Contribute</span>
+            <Heart className="w-4 h-4 mr-1.5 lg:mr-2" />
+            <span>Contribute</span>
           </Link>
         </Button>
       </div>

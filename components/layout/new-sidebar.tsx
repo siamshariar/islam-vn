@@ -71,7 +71,7 @@ export function NewSidebar({ isOpen, onClose }: NewSidebarProps) {
           </Link>
         </div>
         <nav className="flex-1 overflow-hidden py-0 px-0">
-          <div className="overflow-y-auto scrollbar-hide h-full">
+          <div className="overflow-y-auto scrollbar-hide h-full pt-3">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -141,7 +141,7 @@ export function NewSidebar({ isOpen, onClose }: NewSidebarProps) {
           </button>
         </div>
         <nav className="overflow-hidden py-0 px-0 h-[calc(100%-80px)]">
-          <div className="overflow-y-auto scrollbar-hide h-full">
+          <div className="overflow-y-auto scrollbar-hide h-full pt-3">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href

@@ -4,7 +4,6 @@ import { Share2, Facebook, Twitter, Link2, Copy, CheckCircle } from "lucide-reac
 import { CardWrapper } from "@/components/ui/card-wrapper"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { motion } from "framer-motion"
 import { useState } from "react"
 
 export default function SharePage() {
@@ -20,12 +19,7 @@ export default function SharePage() {
   return (
     <div className="px-4 lg:px-8 py-8">
         <div className="max-w-2xl mx-auto">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="text-center mb-12">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald to-gold flex items-center justify-center mx-auto mb-6">
               <Share2 className="w-10 h-10 text-white" />
             </div>
@@ -33,7 +27,7 @@ export default function SharePage() {
             <p className="text-muted-foreground text-lg">
               Help spread authentic Islamic knowledge by sharing Islam VN with your friends and family.
             </p>
-          </motion.div>
+          </div>
 
           <CardWrapper className="mb-8">
             <div className="p-6">
